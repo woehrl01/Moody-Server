@@ -1,9 +1,14 @@
-﻿using Nancy.Hosting.Self;
+﻿using Nancy;
+using Nancy.ErrorHandling;
+using Nancy.Hosting.Self;
+using Nancy.ViewEngines;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
+using System.IO;
+using System.Linq;
 
 namespace MoodServer{
 
@@ -18,7 +23,8 @@ namespace MoodServer{
 
             Get["/"] = _ =>
             {
-                return "Test";
+                //TODO add chart page
+                return "";
             };
 
             Get["/api/info"] = _ =>
@@ -37,6 +43,32 @@ namespace MoodServer{
             Get["/api/locations/"] = _ =>
             {
                 return db.getLocations();
+            };
+        }
+    }
+
+    public class StatusCodeHandler : IStatusCodeHandler
+    {
+        private readonly IRootPathProvider _rootPathProvider;
+
+        public StatusCodeHandler(IRootPathProvider rootPathProvider)
+        {
+            _rootPathProvider = rootPathProvider;
+        }
+
+        public bool HandlesStatusCode(HttpStatusCode statusCode, NancyContext context)
+        {
+            return statusCode == HttpStatusCode.NotFound;
+        }
+
+        public void Handle(HttpStatusCode statusCode, NancyContext context)
+        {
+            context.Response.Contents = stream =>
+            {
+                using (var file = File.OpenRead(new FileInfo(System.Reflection.Assembly.GetEntryAssembly().Location).Directory + "/views/404.html"))
+                {
+                    file.CopyTo(stream);
+                }
             };
         }
     }
