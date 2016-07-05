@@ -1,16 +1,15 @@
 ﻿using Nancy;
 using Nancy.ErrorHandling;
 using Nancy.Hosting.Self;
-using Nancy.ViewEngines;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
 using System.IO;
-using System.Linq;
 
-namespace MoodServer{
+namespace MoodServer
+{
 
     public class MoodModule : Nancy.NancyModule
     {
@@ -36,13 +35,13 @@ namespace MoodServer{
             {
                 int mood = parameters.mood;
                 int location = parameters.location;
-                db.saveMood(mood, location);
+                db.SaveMood(mood, location);
                 return mood.ToString() + " " + location;
             };
 
             Get["/api/locations/"] = _ =>
             {
-                return db.getLocations();
+                return db.GetLocations();
             };
         }
     }
@@ -125,7 +124,7 @@ namespace MoodServer{
             }
         }
 
-        public void saveMood(int mood, int location)
+        public void SaveMood(int mood, int location)
         {
             DateTime localDate = DateTime.Now;
             Console.WriteLine(localDate.ToString());
@@ -169,7 +168,7 @@ namespace MoodServer{
             }
         }
 
-        public String getLocations()
+        public string GetLocations()
         {
             SqlCommand cmd;
             SqlDataReader reader = null;
@@ -210,9 +209,6 @@ namespace MoodServer{
 
     public class Loc
     {
-        private int id;
-        private string location;
-
         public Loc(int id, string location)
         {
             this.Identiefier = id;
@@ -221,14 +217,12 @@ namespace MoodServer{
 
         public string Location
         {
-            get { return location; }
-            set { location = value; }
+            get; set;
         }
 
         public int Identiefier
         {
-            get { return id; }
-            set { id = value; }
+            get; set;
         }
     }
 }
