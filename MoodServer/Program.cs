@@ -331,7 +331,7 @@ namespace MoodServer
                 }
             }
 
-            string data = "var data = [{" + ToCoordinateString(x, "x") + ToCoordinateString(y, "y") + "type: 'bar'}];";
+            string data = "var data = [{" + ToCoordinateString(x, "x") + ToCoordinateString(y, "y") + "marker:{color: ['rgba(44,160,44,1)', 'rgba(31,119,180,1)', 'rgba(255,127,14,1)', 'rgba(214,39,40,1)']},type: 'bar'}];";
             connection.Close();
             Console.WriteLine("SQL Connection Closed ! ");
             return data;
