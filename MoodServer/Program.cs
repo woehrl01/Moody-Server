@@ -218,12 +218,12 @@ namespace MoodServer
 
         public string MakeBarChartScript(string loc,string date)
         {
-            return "<script>$('#title').text('" + loc + " - " + date + "');document.title = '" + loc + " - " + date + "';" + GetEntriesForBarChart(GetIDByName(loc).ToString(), date) + "Plotly.newPlot('diagram', data);</script>";
+            return "<script>$('#title').text('" + loc + " - " + date + "');document.title = '" + loc + " - " + date + "';" + GetEntriesForBarChart(GetIDByName(loc).ToString(), date) + "</script>";
         }
 
         public string MakeLineChartScript(string loc, string datea, string dateb)
         {
-            return "<script type='text/javascript'>" + GetEntriesForLineChart(GetIDByName(loc).ToString(), datea, dateb) + "$('#title').text('" + loc + " - " + datea + " - " + dateb + "');" + "Plotly.newPlot('diagram', data);";
+            return "<script>" + GetEntriesForLineChart(GetIDByName(loc).ToString(), datea, dateb) + "$('#title').text('" + loc + " - " + datea + " - " + dateb + "');document.title = '" + loc + " - " + datea + "';" + "</script></body>";
         }
 
         public int GetIDByName(string loc)
@@ -297,7 +297,7 @@ namespace MoodServer
                 }
             }
 
-            string data = "var data = [{" + ToCoordinateString(x, "x") + ToCoordinateString(y, "y") + "marker:{color: ['rgba(44,160,44,1)', 'rgba(31,119,180,1)', 'rgba(255,127,14,1)', 'rgba(214,39,40,1)']},type: 'bar'}];";
+            string data = "var data = [{" + ToCoordinateString(x, "x") + ToCoordinateString(y, "y") + "marker:{color: ['rgba(44,160,44,1)', 'rgba(31,119,180,1)', 'rgba(255,127,14,1)', 'rgba(214,39,40,1)']},type: 'bar'}];Plotly.newPlot('diagram', data);";
             connection.Close();
             Console.WriteLine("SQL Connection Closed ! ");
             return data;
@@ -310,10 +310,50 @@ namespace MoodServer
 
             if(a > b)
             {
-                return "alert('First date must not be larger than second date!');window.history.back();";
+                return "alert('First date must not be later than second date!');window.history.back();";
             }
-            //TODO Select all entries for vg, g, b, vb on a day (seperate) -> put into var in js, x: [date1, date2, date3, date4],
-            return "";
+            else if(a == b)
+            {
+                return GetEntriesForBarChart(locationId, datea);
+            }
+
+            string xAxis = "x: [";
+
+            var dates = new List<DateTime>();
+            for (var dt = a; dt <= b; dt = dt.AddDays(1))
+            {
+                dates.Add(dt);
+                xAxis += "'" + dt.ToString("MM/dd/yyyy") + "',";
+            }
+            xAxis = xAxis.Remove(xAxis.Length - 1);
+            xAxis += "],";
+
+            string vgJS = "var vg = {" + xAxis + "y: [";
+            string gJS = "var g = {" + xAxis + "y: [";
+            string bJS = "var b = {" + xAxis + "y: [";
+            string vbJS = "var vb = {" + xAxis + "y: [";
+
+            foreach (DateTime d in dates)
+            {
+                vgJS += GetEntriesForMoodOnDay("1", locationId, d.ToString("MM/dd/yyyy")) + ",";
+                gJS += GetEntriesForMoodOnDay("2", locationId, d.ToString("MM/dd/yyyy")) + ",";
+                bJS += GetEntriesForMoodOnDay("3", locationId, d.ToString("MM/dd/yyyy")) + ",";
+                vbJS += GetEntriesForMoodOnDay("4", locationId, d.ToString("MM/dd/yyyy")) + ",";
+            }
+
+            vgJS = vgJS.Remove(vgJS.Length - 1);
+            gJS = gJS.Remove(gJS.Length - 1);
+            bJS = bJS.Remove(bJS.Length - 1);
+            vbJS = vbJS.Remove(vbJS.Length - 1);
+
+            vgJS += "],name: 'Very Good',type: 'scatter'};";
+            gJS += "],name: 'Good',type: 'scatter'};";
+            bJS += "],name: 'Bad',type: 'scatter'};";
+            vbJS += "],name: 'Very Bad',type: 'scatter'};";
+
+            string layout = "var layout = {xaxis:{tickangle: -45}};";
+
+            return vgJS + gJS + bJS + vbJS + "var data = [vg,g,b,vb];" + layout + "Plotly.newPlot('diagram', data, layout);";
         }
 
         public string GetEntriesForMoodOnDay(string moodID, string location, string day)
@@ -325,10 +365,19 @@ namespace MoodServer
             {
                 connection.Open();
                 Console.WriteLine("SQL Connection Open ! ");
-                cmd = new SqlCommand("SELECT count(mood) FROM entries WHERE mood = @moodID and CONVERT(DATETIME, FLOOR(CONVERT(FLOAT, [date])),101) = @day and location = @location", connection);
-                cmd.Parameters.AddWithValue("moodID", moodID);
-                cmd.Parameters.AddWithValue("day", day);
-                cmd.Parameters.AddWithValue("location", location);
+                if (location.Equals("0"))
+                {
+                    cmd = new SqlCommand("SELECT count(mood) FROM entries WHERE mood = @moodID and CONVERT(DATETIME, FLOOR(CONVERT(FLOAT, [date])),101) = @day", connection);
+                    cmd.Parameters.AddWithValue("moodID", moodID);
+                    cmd.Parameters.AddWithValue("day", day);
+                }
+                else
+                {
+                    cmd = new SqlCommand("SELECT count(mood) FROM entries WHERE mood = @moodID and CONVERT(DATETIME, FLOOR(CONVERT(FLOAT, [date])),101) = @day and location = @location", connection);
+                    cmd.Parameters.AddWithValue("moodID", moodID);
+                    cmd.Parameters.AddWithValue("day", day);
+                    cmd.Parameters.AddWithValue("location", location);
+                }
                 reader = cmd.ExecuteReader();
                 Console.WriteLine("Getting locations... ");
             }
