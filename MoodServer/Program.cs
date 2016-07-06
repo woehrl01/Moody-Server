@@ -38,7 +38,7 @@ namespace MoodServer
                 WebClient client = new WebClient();
                 if(!dayA.Equals("0") && !monthA.Equals("0") && !yearA.Equals("0"))
                 {
-                    return client.DownloadString("views/dia.html") + db.MakeLineChartScript(loc, month + "/" + day + "/" + year, monthA + "/" + dayA + "/" + yearA) + "</html>";    
+                    return client.DownloadString("views/dia.html") + db.MakeLineChartScript(loc, month + "/" + day + "/" + year, monthA + "/" + dayA + "/" + yearA);    
                 }
                 else
                 {
@@ -218,12 +218,12 @@ namespace MoodServer
 
         public string MakeBarChartScript(string loc,string date)
         {
-            return "<script>$('#title').text('" + loc + " - " + date + "');" + GetEntriesForBarChart(GetIDByName(loc).ToString(), date) + "Plotly.newPlot('diagram', data);</script>";
+            return "<script>$('#title').text('" + loc + " - " + date + "');document.title = '" + loc + " - " + date + "';" + GetEntriesForBarChart(GetIDByName(loc).ToString(), date) + "Plotly.newPlot('diagram', data);</script>";
         }
 
         public string MakeLineChartScript(string loc, string datea, string dateb)
         {
-            return "<script>$('#title').text('" + loc + " - " + datea + " - " + dateb + "');" + GetEntriesForLineChart(GetIDByName(loc).ToString(), datea, dateb) + "Plotly.newPlot('diagram', data);</ script > ";
+            return "<script type='text/javascript'>" + GetEntriesForLineChart(GetIDByName(loc).ToString(), datea, dateb) + "$('#title').text('" + loc + " - " + datea + " - " + dateb + "');" + "Plotly.newPlot('diagram', data);";
         }
 
         public int GetIDByName(string loc)
@@ -270,12 +270,12 @@ namespace MoodServer
                 Console.WriteLine("SQL Connection Open ! ");
                 if (locationId.Equals("0"))
                 {
-                    cmd = new SqlCommand("select m.[Desc],count(e.mood) from mood m left join entries e on e.mood = m.Id and CONVERT(DATETIME, FLOOR(CONVERT(FLOAT, e.[date]))) = @date group by  m.[Desc], mood, m.id order by m.Id asc", connection);
+                    cmd = new SqlCommand("select m.[Desc],count(e.mood) from mood m left join entries e on e.mood = m.Id and CONVERT(DATETIME, FLOOR(CONVERT(FLOAT, e.[date])),101) = @date group by  m.[Desc], mood, m.id order by m.Id asc", connection);
                     cmd.Parameters.AddWithValue("date", date);
                 }
                 else
                 {
-                    cmd = new SqlCommand("select m.[Desc],count(e.mood) from mood m left join entries e on e.mood = m.Id and e.location = @locationId and CONVERT(DATETIME, FLOOR(CONVERT(FLOAT, e.[date]))) = @date group by  m.[Desc], mood, m.id order by m.Id asc", connection);
+                    cmd = new SqlCommand("select m.[Desc],count(e.mood) from mood m left join entries e on e.mood = m.Id and e.location = @locationId and CONVERT(DATETIME, FLOOR(CONVERT(FLOAT, e.[date])),101) = @date group by  m.[Desc], mood, m.id order by m.Id asc", connection);
                     cmd.Parameters.AddWithValue("date", date);
                     cmd.Parameters.AddWithValue("locationId", locationId);
                 }
@@ -305,6 +305,13 @@ namespace MoodServer
 
         public string GetEntriesForLineChart(string locationId, string datea, string dateb)
         {
+            DateTime a = new DateTime(Int32.Parse(datea.Split('/')[2]), Int32.Parse(datea.Split('/')[0]), Int32.Parse(datea.Split('/')[1]));
+            DateTime b = new DateTime(Int32.Parse(dateb.Split('/')[2]), Int32.Parse(dateb.Split('/')[0]), Int32.Parse(dateb.Split('/')[1]));
+
+            if(a > b)
+            {
+                return "alert('First date must not be larger than second date!');window.history.back();";
+            }
             //TODO Select all entries for vg, g, b, vb on a day (seperate) -> put into var in js, x: [date1, date2, date3, date4],
             return "";
         }
@@ -318,7 +325,7 @@ namespace MoodServer
             {
                 connection.Open();
                 Console.WriteLine("SQL Connection Open ! ");
-                cmd = new SqlCommand("SELECT count(mood) FROM entries WHERE mood = @moodID and CONVERT(DATETIME, FLOOR(CONVERT(FLOAT, [date]))) = @day and location = @location", connection);
+                cmd = new SqlCommand("SELECT count(mood) FROM entries WHERE mood = @moodID and CONVERT(DATETIME, FLOOR(CONVERT(FLOAT, [date])),101) = @day and location = @location", connection);
                 cmd.Parameters.AddWithValue("moodID", moodID);
                 cmd.Parameters.AddWithValue("day", day);
                 cmd.Parameters.AddWithValue("location", location);
