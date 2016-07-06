@@ -379,7 +379,7 @@ namespace MoodServer
                     cmd.Parameters.AddWithValue("location", location);
                 }
                 reader = cmd.ExecuteReader();
-                Console.WriteLine("Getting amount of moods with mood id" + moodID + "for location " + location + "on " + day + "...");
+                Console.WriteLine("Getting amount of moods with mood id " + moodID + " for location " + location + " on " + day + "...");
             }
             catch (Exception e)
             {
