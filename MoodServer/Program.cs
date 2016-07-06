@@ -32,13 +32,18 @@ namespace MoodServer
                 string day = Request.Form.day;
                 string month = Request.Form.month;
                 string year = Request.Form.year;
+                string dayA = Request.Form.day2;
+                string monthA = Request.Form.month2;
+                string yearA = Request.Form.year2;
                 WebClient client = new WebClient();
-                return client.DownloadString("views/dia.html") + "<script src='/api/diagramscript/" + loc + "&" + day + "&" + month + "&" + year + "'></script></html>";
-            };
-
-            Get["/api/diagramscript/{loc}&{day}&{month}&{year}"] = parameters =>
-            {
-                return db.MakeDiagramScript(parameters.loc,parameters.month + "/" + parameters.day + "/" + parameters.year);
+                if(!dayA.Equals("0") && !monthA.Equals("0") && !yearA.Equals("0"))
+                {
+                    return client.DownloadString("views/dia.html") + db.MakeLineChartScript(loc, month + "/" + day + "/" + year, monthA + "/" + dayA + "/" + yearA) + "</html>";    
+                }
+                else
+                {
+                    return client.DownloadString("views/dia.html") + db.MakeBarChartScript(loc, month + "/" + day + "/" + year) + "</html>";
+                }
             };
 
             Get["/api/locations/"] = _ =>
@@ -188,60 +193,6 @@ namespace MoodServer
             }
         }
 
-        public string GetLocations()
-        {
-            SqlCommand cmd;
-            SqlDataReader reader = null;
-            try
-            {
-                connection.Open();
-                Console.WriteLine("SQL Connection Open ! ");
-                cmd = new SqlCommand("SELECT Id,location FROM locations", connection);
-                reader = cmd.ExecuteReader();
-                Console.WriteLine("Getting locations... ");
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine("Something went wrong ! ");
-                Console.WriteLine(e.Message);
-            }
-
-            List<Loc> loc = new List<Loc>();
-
-            if(reader != null)
-            {
-                if (reader.HasRows)
-                {
-                    while (reader.Read())
-                    {
-                        loc.Add(new Loc(reader.GetInt32(0), reader.GetString(1)));
-                    }
-                }
-                else
-                {
-                    Console.WriteLine("No rows found.");
-                }
-            }
-            else
-            {
-                Console.WriteLine("Something went wrong ! ");
-            }
-            
-            connection.Close();
-            Console.WriteLine("SQL Connection Closed ! ");
-
-            string json = null;
-            try
-            {
-                json = JsonConvert.SerializeObject(loc, Formatting.Indented);
-            }
-            catch (Exception)
-            {
-                Console.WriteLine("Something went wrong ! ");
-            }
-            return json;
-        }
-
         public string MakeSelectScript()
         {
             string locations = GetLocations();
@@ -259,16 +210,20 @@ namespace MoodServer
             {
                 script += "var option = document.createElement('option');option.text ='" + s + "';x.add(option); ";
             }
-            script += "$('#day_1').val('" + DateTime.Today.Day.ToString() + "');";
-            script += "$('#month_1').val('" + DateTime.Today.Month.ToString() + "');";
-            script += "$('#year_1').val('" + DateTime.Today.Year.ToString() + "');";
+            script += "document.getElementById('day_1').value = '" + DateTime.Today.Day.ToString() + "';";
+            script += "document.getElementById('month_1').value = '" + DateTime.Today.Month.ToString() + "';";
+            script += "document.getElementById('year_1').value = '" + DateTime.Today.Year.ToString() + "';";
             return script;
         }
 
-        public string MakeDiagramScript(string loc,string date)
+        public string MakeBarChartScript(string loc,string date)
         {
-            string script = "$('#title').text('" + loc + " - " + date + "');" + GetEntries(GetIDByName(loc).ToString(), date) + "Plotly.newPlot('diagram', data);";
-            return script;
+            return "<script>$('#title').text('" + loc + " - " + date + "');" + GetEntriesForBarChart(GetIDByName(loc).ToString(), date) + "Plotly.newPlot('diagram', data);</script>";
+        }
+
+        public string MakeLineChartScript(string loc, string datea, string dateb)
+        {
+            return "<script>$('#title').text('" + loc + " - " + datea + " - " + dateb + "');" + GetEntriesForLineChart(GetIDByName(loc).ToString(), datea, dateb) + "Plotly.newPlot('diagram', data);</ script > ";
         }
 
         public int GetIDByName(string loc)
@@ -280,7 +235,8 @@ namespace MoodServer
             {
                 connection.Open();
                 Console.WriteLine("SQL Connection Open ! ");
-                cmd = new SqlCommand("SELECT Id FROM locations WHERE location = '" + loc + "'", connection);
+                cmd = new SqlCommand("SELECT Id FROM locations WHERE location = @loc", connection);
+                cmd.Parameters.AddWithValue("loc", loc);
                 reader = cmd.ExecuteReader();
                 Console.WriteLine("Getting locationID from location " + loc + "...");
             }
@@ -302,7 +258,7 @@ namespace MoodServer
             return id;
         }
 
-        public string GetEntries(string locationId, string date)
+        public string GetEntriesForBarChart(string locationId, string date)
         {
             SqlCommand cmd;
             SqlDataReader reader = null;
@@ -312,7 +268,17 @@ namespace MoodServer
             {
                 connection.Open();
                 Console.WriteLine("SQL Connection Open ! ");
-                cmd = new SqlCommand("select m.[Desc],count(e.mood) from mood m left join entries e on e.mood = m.Id and e.location =" + locationId + "and CONVERT(DATETIME, FLOOR(CONVERT(FLOAT, e.[date]))) = '" + date +"' group by  m.[Desc], mood, m.id order by m.Id asc", connection);
+                if (locationId.Equals("0"))
+                {
+                    cmd = new SqlCommand("select m.[Desc],count(e.mood) from mood m left join entries e on e.mood = m.Id and CONVERT(DATETIME, FLOOR(CONVERT(FLOAT, e.[date]))) = @date group by  m.[Desc], mood, m.id order by m.Id asc", connection);
+                    cmd.Parameters.AddWithValue("date", date);
+                }
+                else
+                {
+                    cmd = new SqlCommand("select m.[Desc],count(e.mood) from mood m left join entries e on e.mood = m.Id and e.location = @locationId and CONVERT(DATETIME, FLOOR(CONVERT(FLOAT, e.[date]))) = @date group by  m.[Desc], mood, m.id order by m.Id asc", connection);
+                    cmd.Parameters.AddWithValue("date", date);
+                    cmd.Parameters.AddWithValue("locationId", locationId);
+                }
                 reader = cmd.ExecuteReader();
                 Console.WriteLine("Getting entries for date " + date + " for locationID " + locationId + "...");
             }
@@ -335,6 +301,114 @@ namespace MoodServer
             connection.Close();
             Console.WriteLine("SQL Connection Closed ! ");
             return data;
+        }
+
+        public string GetEntriesForLineChart(string locationId, string datea, string dateb)
+        {
+            //TODO Select all entries for vg, g, b, vb on a day (seperate) -> put into var in js, x: [date1, date2, date3, date4],
+            return "";
+        }
+
+        public string GetEntriesForMoodOnDay(string moodID, string location, string day)
+        {
+            SqlCommand cmd;
+            SqlDataReader reader = null;
+            string amount = null;
+            try
+            {
+                connection.Open();
+                Console.WriteLine("SQL Connection Open ! ");
+                cmd = new SqlCommand("SELECT count(mood) FROM entries WHERE mood = @moodID and CONVERT(DATETIME, FLOOR(CONVERT(FLOAT, [date]))) = @day and location = @location", connection);
+                cmd.Parameters.AddWithValue("moodID", moodID);
+                cmd.Parameters.AddWithValue("day", day);
+                cmd.Parameters.AddWithValue("location", location);
+                reader = cmd.ExecuteReader();
+                Console.WriteLine("Getting locations... ");
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Something went wrong ! ");
+                Console.WriteLine(e.Message);
+            }
+
+            List<Loc> loc = new List<Loc>();
+
+            if (reader != null)
+            {
+                if (reader.HasRows)
+                {
+                    while (reader.Read())
+                    {
+                        amount = reader.GetInt32(0).ToString();
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("No rows found.");
+                }
+            }
+            else
+            {
+                Console.WriteLine("Something went wrong ! ");
+            }
+
+            connection.Close();
+            Console.WriteLine("SQL Connection Closed ! ");
+            return amount;
+        }
+
+        public string GetLocations()
+        {
+            SqlCommand cmd;
+            SqlDataReader reader = null;
+            try
+            {
+                connection.Open();
+                Console.WriteLine("SQL Connection Open ! ");
+                cmd = new SqlCommand("SELECT Id,location FROM locations", connection);
+                reader = cmd.ExecuteReader();
+                Console.WriteLine("Getting locations... ");
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Something went wrong ! ");
+                Console.WriteLine(e.Message);
+            }
+
+            List<Loc> loc = new List<Loc>();
+
+            if (reader != null)
+            {
+                if (reader.HasRows)
+                {
+                    while (reader.Read())
+                    {
+                        loc.Add(new Loc(reader.GetInt32(0), reader.GetString(1)));
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("No rows found.");
+                }
+            }
+            else
+            {
+                Console.WriteLine("Something went wrong ! ");
+            }
+
+            connection.Close();
+            Console.WriteLine("SQL Connection Closed ! ");
+
+            string json = null;
+            try
+            {
+                json = JsonConvert.SerializeObject(loc, Formatting.Indented);
+            }
+            catch (Exception)
+            {
+                Console.WriteLine("Something went wrong ! ");
+            }
+            return json;
         }
 
         public string ToCoordinateString(List<string> coordAsList, string type)
