@@ -1,0 +1,101 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="shortcut icon" type="image/x-icon" href="/res/Icon.ico" />
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>New entry</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.0.0/jquery.min.js"></script>
+    <script src="/res/select.js"></script>
+    <style>
+        body{
+            margin: 0;
+            height:100vh;
+            background-color: #2579BF;
+        }
+        #verygood{
+            width: 100%;
+            height:100%;
+            padding: 5px;
+            border:0;
+            background-color: #99cc00;
+        }
+        #good{
+            width: 100%;
+            height:100%;
+            padding: 5px;
+            border:0;
+            background-color: #33b5e5;
+        }
+        #bad{
+            width: 100%;
+            height: 100%;
+            padding: 5px;
+            border:0;
+            background-color: #ff8800;
+        }
+        #verybad{
+            width: 100%;
+            height:100%;
+            padding: 5px;
+            border:0;
+            background-color: #cc0000;
+        }
+        #locations{
+            height:100%;
+            width: 100%;
+            text-align-last:center;
+            color: #ff1a507c;
+            font-size: 2.5em;
+            line-height: 1;
+            border: 0;
+            border-radius: 0;
+        }
+        #locations option{
+            text-align: center;
+            text-align-last: center;
+        }
+        #results{
+            height:100%;
+            width: 100%;
+            text-align:center;
+            font-size:2.5em;
+            background-color:white;
+            border:none;
+        }
+
+        .img{
+            max-width:100%;
+            max-height:100%;
+        }
+        .box{
+            height:21%;
+        }
+        .loc{
+            height: 8%;
+        }
+    </style>
+</head>
+<body>
+<div class="loc">
+    <select id="locations" name="location"></select>
+</div>
+<div class="box">
+    <button id="verygood" name="mood" onclick="saveMood(1)"><img src="/res/vg.png" class="img"></button>
+</div>
+<div class="box">
+    <button id="good" name="mood" onclick="saveMood(2)"><img src="/res/g.png" class="img"></button>
+</div>
+<div class="box">
+    <button id="bad" name="mood" onclick="saveMood(3)"><img src="/res/b.png" class="img"></button>
+</div>
+<div class="box">
+    <button id="verybad" name="mood" onclick="saveMood(4)"><img src="/res/vb.png" class="img"></button>
+</div>
+<div class="loc">
+    <a href="/results"><button id="results">Results</button></a>
+</div>
+<script src="/api/locationscript"></script>
+</body>
+</html>

@@ -23,7 +23,27 @@ namespace MoodServer
         {
             db = new DBManager();
 
-            Get[@"/"] = parameters =>
+            Get[@"/"] = _ =>
+            {
+                WebClient client = new WebClient();
+                return client.DownloadString("views/entry.html");
+            };
+
+            Post["/"] = _ =>
+            {
+                string loc = Request.Form.location;
+                int mood = Int32.Parse(Request.Form.mood);
+                db.SaveMood(mood, db.GetIDByName(loc));
+                return "<script>alert('Thanks for voting!');window.history.back();window.stop();</script>";
+            };
+
+            Get["/res/{res}"] = parameter =>
+            {
+                string response = "res/" + parameter.res;
+                return Response.AsFile(response);
+            };
+
+            Get["/results"] = parameters =>
             {
                 WebClient client = new WebClient();
                 return client.DownloadString("views/form.html");
@@ -391,6 +411,7 @@ namespace MoodServer
         {
             SqlCommand cmd;
             SqlDataReader reader = null;
+            Console.WriteLine("Getting all entries for locationId " + location + " between " + datea.ToString("MM/dd/yyyy") + " and " + dateb.ToString("MM/dd/yyyy"));
             try
             {
                 connection.Open();
