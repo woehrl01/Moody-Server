@@ -321,11 +321,14 @@ namespace MoodServer
             string xAxis = "x: [";
 
             var dates = new List<DateTime>();
+            Dictionary<DateTime, Mood> dic = new Dictionary<DateTime, Mood>();
             for (var dt = datea; dt <= dateb; dt = dt.AddDays(1))
             {
                 dates.Add(dt);
+                dic.Add(dt, new Mood());
                 xAxis += "'" + dt.ToString("MM/dd/yyyy") + "',";
             }
+
             xAxis = xAxis.Remove(xAxis.Length - 1);
             xAxis += "],";
 
@@ -334,12 +337,14 @@ namespace MoodServer
             string bJS = "var b = {" + xAxis + "y: [";
             string vbJS = "var vb = {" + xAxis + "y: [";
 
+            GetAllEntriesBetweenDates(locationId, datea, dateb, dic);
+
             foreach (DateTime d in dates)
             {
-                vgJS += GetEntriesForMoodOnDay("1", locationId, d) + ",";
-                gJS += GetEntriesForMoodOnDay("2", locationId, d) + ",";
-                bJS += GetEntriesForMoodOnDay("3", locationId, d) + ",";
-                vbJS += GetEntriesForMoodOnDay("4", locationId, d) + ",";
+                vgJS += dic[d].VeryGood + ",";
+                gJS += dic[d].Good + ",";
+                bJS += dic[d].Bad + ",";
+                vbJS += dic[d].VeryBad + ",";
             }
 
             vgJS = vgJS.Remove(vgJS.Length - 1);
@@ -353,10 +358,83 @@ namespace MoodServer
             vbJS += "],name: 'Very Bad',type: 'scatter'};";
 
             string layout = "var layout = {xaxis:{tickangle: -45}};";
-
             return vgJS + gJS + bJS + vbJS + "var data = [vg,g,b,vb];" + layout + "Plotly.newPlot('diagram', data, layout);";
         }
 
+        public void GetAllEntriesBetweenDates(string location, DateTime datea, DateTime dateb, Dictionary<DateTime, Mood> dic)
+        {
+            SqlCommand cmd;
+            SqlDataReader reader = null;
+            try
+            {
+                connection.Open();
+                Console.WriteLine("SQL Connection Open ! ");
+                if (location.Equals("0"))
+                {
+                    cmd = new SqlCommand("SELECT CONVERT(DATETIME, FLOOR(CONVERT(FLOAT, [date])),101),mood,count(mood) FROM entries WHERE CONVERT(DATETIME, FLOOR(CONVERT(FLOAT, [date])),101) between @datea and @dateb group by CONVERT(DATETIME, FLOOR(CONVERT(FLOAT, [date])),101), mood", connection);
+                    cmd.Parameters.AddWithValue("datea", datea);
+                    cmd.Parameters.AddWithValue("dateb", dateb.AddDays(1).AddSeconds(-1));
+                }
+                else
+                {
+                    cmd = new SqlCommand("SELECT CONVERT(DATETIME, FLOOR(CONVERT(FLOAT, [date])),101),mood,count(mood) FROM entries WHERE location = @location and CONVERT(DATETIME, FLOOR(CONVERT(FLOAT, [date])),101) between @datea and @dateb group by CONVERT(DATETIME, FLOOR(CONVERT(FLOAT, [date])),101), mood", connection);
+                    cmd.Parameters.AddWithValue("datea", datea);
+                    cmd.Parameters.AddWithValue("dateb", dateb.AddDays(1).AddSeconds(-1));
+                    cmd.Parameters.AddWithValue("location", location);
+                }
+                reader = cmd.ExecuteReader();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Something went wrong ! ");
+                Console.WriteLine(e.Message);
+            }
+
+            if (reader != null)
+            {
+                if (reader.HasRows)
+                {
+                    while (reader.Read())
+                    {
+                        DateTime dateFromDB = reader.GetDateTime(0);
+                        int mood = reader.GetInt32(1);
+                        int amount = reader.GetInt32(2);
+                        Mood m = dic[dateFromDB];
+
+                        switch (mood)
+                        {
+                            case 1:
+                                m.VeryGood = amount;
+                                break;
+                            case 2:
+                                m.Good = amount;
+                                break;
+                            case 3:
+                                m.Bad = amount;
+                                break;
+                            case 4:
+                                m.VeryBad = amount;
+                                break;
+                        }
+
+                        dic.Remove(dateFromDB);
+                        dic.Add(dateFromDB, m);
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("No rows found.");
+                }
+            }
+            else
+            {
+                Console.WriteLine("Something went wrong ! ");
+            }
+            connection.Close();
+            Console.WriteLine("SQL Connection Closed ! ");
+        }
+
+        [Obsolete ("Use Method GetAllEntriesBetweenDates instead")]
         public string GetEntriesForMoodOnDay(string moodID, string location, DateTime day)
         {
             SqlCommand cmd;
@@ -505,6 +583,35 @@ namespace MoodServer
         public int Identiefier
         {
             get; set;
+        }
+    }
+
+    public class Mood
+    {
+        private int _veryGood = 0;
+        private int _good = 0;
+        private int _bad = 0;
+        private int _veryBad = 0;
+
+        public int VeryGood
+        {
+            get { return _veryGood; }
+            set { _veryGood = value; }
+        }
+        public int Good
+        {
+            get { return _good; }
+            set { _good = value; }
+        }
+        public int Bad
+        {
+            get { return _bad; }
+            set { _bad = value; }
+        }
+        public int VeryBad
+        {
+            get { return _veryBad; }
+            set { _veryBad = value; }
         }
     }
 }
