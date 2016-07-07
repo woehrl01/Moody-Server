@@ -6,8 +6,10 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
+using System.Globalization;
 using System.IO;
 using System.Net;
+using System.Threading;
 
 namespace MoodServer
 {
@@ -38,11 +40,11 @@ namespace MoodServer
                 WebClient client = new WebClient();
                 if(!dayA.Equals("0") && !monthA.Equals("0") && !yearA.Equals("0"))
                 {
-                    return client.DownloadString("views/dia.html") + db.MakeLineChartScript(loc, month + "/" + day + "/" + year, monthA + "/" + dayA + "/" + yearA);    
+                    return client.DownloadString("views/dia.html") + db.MakeLineChartScript(loc, new DateTime(Int32.Parse(year), Int32.Parse(month), Int32.Parse(day)), new DateTime(Int32.Parse(yearA), Int32.Parse(monthA), Int32.Parse(dayA)));    
                 }
                 else
                 {
-                    return client.DownloadString("views/dia.html") + db.MakeBarChartScript(loc, month + "/" + day + "/" + year) + "</html>";
+                    return client.DownloadString("views/dia.html") + db.MakeBarChartScript(loc, new DateTime(Int32.Parse(year), Int32.Parse(month), Int32.Parse(day))) + "</html>";
                 }
             };
 
@@ -105,6 +107,7 @@ namespace MoodServer
 
         private void Start()
         {
+            Thread.CurrentThread.CurrentCulture = new CultureInfo("en-US");
             var uri = new Uri($"{_url}:{_port}/");
             using (var nancy = new NancyHost(uri))
             {
@@ -153,17 +156,18 @@ namespace MoodServer
         {
             DateTime localDate = DateTime.Now;
             Console.WriteLine(localDate.ToString());
-            String guid = Guid.NewGuid().ToString(); ;
+            string guid = Guid.NewGuid().ToString(); ;
 
-            String save = "INSERT into entries (Id,mood,location,date) VALUES (@id,@mood,@loc,@date)";
+            string save = "INSERT into entries (Id,mood,location,date) VALUES (@id,@mood,@loc,@date)";
 
             using (SqlCommand command = new SqlCommand(save))
             {
+                Thread.CurrentThread.CurrentCulture = new CultureInfo("en-US");
                 command.Connection = connection;
                 command.Parameters.Add("@id", SqlDbType.VarChar, 36).Value = guid;
                 command.Parameters.Add("@mood", SqlDbType.Int).Value = mood;
                 command.Parameters.Add("@loc", SqlDbType.Int).Value = location;
-                command.Parameters.Add("@date", SqlDbType.DateTime).Value = localDate;
+                command.Parameters.Add("@date", SqlDbType.DateTime).Value = localDate.ToString();
 
                 try
                 {
@@ -216,14 +220,14 @@ namespace MoodServer
             return script;
         }
 
-        public string MakeBarChartScript(string loc,string date)
+        public string MakeBarChartScript(string loc,DateTime date)
         {
-            return "<script>$('#title').text('" + loc + " - " + date + "');document.title = '" + loc + " - " + date + "';" + GetEntriesForBarChart(GetIDByName(loc).ToString(), date) + "</script>";
+            return "<script>$('#title').text('" + loc + " - " + date.ToString("MM/dd/yyyy") + "');document.title = '" + loc + " - " + date.ToString("MM/dd/yyyy") + "';" + GetEntriesForBarChart(GetIDByName(loc).ToString(), date) + "</script>";
         }
 
-        public string MakeLineChartScript(string loc, string datea, string dateb)
+        public string MakeLineChartScript(string loc, DateTime datea, DateTime dateb)
         {
-            return "<script>" + GetEntriesForLineChart(GetIDByName(loc).ToString(), datea, dateb) + "$('#title').text('" + loc + " - " + datea + " - " + dateb + "');document.title = '" + loc + " - " + datea + "';" + "</script></body>";
+            return "<script>" + GetEntriesForLineChart(GetIDByName(loc).ToString(), datea, dateb) + "$('#title').text('" + loc + " - " + datea.ToString("MM/dd/yyyy") + " - " + dateb.ToString("MM/dd/yyyy") + "');document.title = '" + loc + " - " + datea.ToString("MM/dd/yyyy") + "';" + "</script></body>";
         }
 
         public int GetIDByName(string loc)
@@ -258,7 +262,7 @@ namespace MoodServer
             return id;
         }
 
-        public string GetEntriesForBarChart(string locationId, string date)
+        public string GetEntriesForBarChart(string locationId, DateTime date)
         {
             SqlCommand cmd;
             SqlDataReader reader = null;
@@ -271,16 +275,16 @@ namespace MoodServer
                 if (locationId.Equals("0"))
                 {
                     cmd = new SqlCommand("select m.[Desc],count(e.mood) from mood m left join entries e on e.mood = m.Id and CONVERT(DATETIME, FLOOR(CONVERT(FLOAT, e.[date])),101) = @date group by  m.[Desc], mood, m.id order by m.Id asc", connection);
-                    cmd.Parameters.AddWithValue("date", date);
+                    cmd.Parameters.AddWithValue("date", date.ToString("MM/dd/yyyy"));
                 }
                 else
                 {
                     cmd = new SqlCommand("select m.[Desc],count(e.mood) from mood m left join entries e on e.mood = m.Id and e.location = @locationId and CONVERT(DATETIME, FLOOR(CONVERT(FLOAT, e.[date])),101) = @date group by  m.[Desc], mood, m.id order by m.Id asc", connection);
-                    cmd.Parameters.AddWithValue("date", date);
+                    cmd.Parameters.AddWithValue("date", date.ToString("MM/dd/yyyy"));
                     cmd.Parameters.AddWithValue("locationId", locationId);
                 }
                 reader = cmd.ExecuteReader();
-                Console.WriteLine("Getting entries for date " + date + " for locationID " + locationId + "...");
+                Console.WriteLine("Getting entries for date " + date.ToString("MM/dd/yyyy") + " for locationID " + locationId + "...");
             }
             catch (Exception e)
             {
@@ -303,16 +307,13 @@ namespace MoodServer
             return data;
         }
 
-        public string GetEntriesForLineChart(string locationId, string datea, string dateb)
+        public string GetEntriesForLineChart(string locationId, DateTime datea, DateTime dateb)
         {
-            DateTime a = new DateTime(Int32.Parse(datea.Split('/')[2]), Int32.Parse(datea.Split('/')[0]), Int32.Parse(datea.Split('/')[1]));
-            DateTime b = new DateTime(Int32.Parse(dateb.Split('/')[2]), Int32.Parse(dateb.Split('/')[0]), Int32.Parse(dateb.Split('/')[1]));
-
-            if(a > b)
+            if(datea > dateb)
             {
                 return "alert('First date must not be later than second date!');window.history.back();";
             }
-            else if(a == b)
+            else if(datea == dateb)
             {
                 return GetEntriesForBarChart(locationId, datea);
             }
@@ -320,7 +321,7 @@ namespace MoodServer
             string xAxis = "x: [";
 
             var dates = new List<DateTime>();
-            for (var dt = a; dt <= b; dt = dt.AddDays(1))
+            for (var dt = datea; dt <= dateb; dt = dt.AddDays(1))
             {
                 dates.Add(dt);
                 xAxis += "'" + dt.ToString("MM/dd/yyyy") + "',";
@@ -335,10 +336,10 @@ namespace MoodServer
 
             foreach (DateTime d in dates)
             {
-                vgJS += GetEntriesForMoodOnDay("1", locationId, d.ToString("MM/dd/yyyy")) + ",";
-                gJS += GetEntriesForMoodOnDay("2", locationId, d.ToString("MM/dd/yyyy")) + ",";
-                bJS += GetEntriesForMoodOnDay("3", locationId, d.ToString("MM/dd/yyyy")) + ",";
-                vbJS += GetEntriesForMoodOnDay("4", locationId, d.ToString("MM/dd/yyyy")) + ",";
+                vgJS += GetEntriesForMoodOnDay("1", locationId, d) + ",";
+                gJS += GetEntriesForMoodOnDay("2", locationId, d) + ",";
+                bJS += GetEntriesForMoodOnDay("3", locationId, d) + ",";
+                vbJS += GetEntriesForMoodOnDay("4", locationId, d) + ",";
             }
 
             vgJS = vgJS.Remove(vgJS.Length - 1);
@@ -356,7 +357,7 @@ namespace MoodServer
             return vgJS + gJS + bJS + vbJS + "var data = [vg,g,b,vb];" + layout + "Plotly.newPlot('diagram', data, layout);";
         }
 
-        public string GetEntriesForMoodOnDay(string moodID, string location, string day)
+        public string GetEntriesForMoodOnDay(string moodID, string location, DateTime day)
         {
             SqlCommand cmd;
             SqlDataReader reader = null;
@@ -369,17 +370,17 @@ namespace MoodServer
                 {
                     cmd = new SqlCommand("SELECT count(mood) FROM entries WHERE mood = @moodID and CONVERT(DATETIME, FLOOR(CONVERT(FLOAT, [date])),101) = @day", connection);
                     cmd.Parameters.AddWithValue("moodID", moodID);
-                    cmd.Parameters.AddWithValue("day", day);
+                    cmd.Parameters.AddWithValue("day", day.ToString("MM/dd/yyyy"));
                 }
                 else
                 {
                     cmd = new SqlCommand("SELECT count(mood) FROM entries WHERE mood = @moodID and CONVERT(DATETIME, FLOOR(CONVERT(FLOAT, [date])),101) = @day and location = @location", connection);
                     cmd.Parameters.AddWithValue("moodID", moodID);
-                    cmd.Parameters.AddWithValue("day", day);
+                    cmd.Parameters.AddWithValue("day", day.ToString("MM/dd/yyyy"));
                     cmd.Parameters.AddWithValue("location", location);
                 }
                 reader = cmd.ExecuteReader();
-                Console.WriteLine("Getting amount of moods with mood id " + moodID + " for location " + location + " on " + day + "...");
+                Console.WriteLine("Getting amount of moods with mood id " + moodID + " for location " + location + " on " + day.ToString("MM/dd/yyyy") + "...");
             }
             catch (Exception e)
             {

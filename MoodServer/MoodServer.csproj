@@ -115,7 +115,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
-    <None Include="CodeMap.dgml" />
     <None Include="MoodServer_TemporaryKey.pfx" />
     <None Include="packages.config" />
   </ItemGroup>
