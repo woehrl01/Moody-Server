@@ -9,6 +9,7 @@ using System.Data.SqlClient;
 using System.Globalization;
 using System.IO;
 using System.Net;
+using System.Text;
 using System.Threading;
 
 namespace MoodServer
@@ -227,7 +228,7 @@ namespace MoodServer
 
         public string MakeLineChartScript(string loc, DateTime datea, DateTime dateb)
         {
-            return "<script>" + GetEntriesForLineChart(GetIDByName(loc).ToString(), datea, dateb) + "$('#title').text('" + loc + " - " + datea.ToString("MM/dd/yyyy") + " - " + dateb.ToString("MM/dd/yyyy") + "');document.title = '" + loc + " - " + datea.ToString("MM/dd/yyyy") + "';" + "</script></body>";
+            return "<script>" + GetEntriesForLineChart(GetIDByName(loc).ToString(), datea, dateb) + "$('#title').text('" + loc + " - " + datea.ToString("MM/dd/yyyy") + " - " + dateb.ToString("MM/dd/yyyy") + "');document.title = '" + loc + " - " + datea.ToString("MM/dd/yyyy") + " - " + dateb.ToString("MM/dd/yyyy") + "';</script></body>";
         }
 
         public int GetIDByName(string loc)
@@ -318,7 +319,8 @@ namespace MoodServer
                 return GetEntriesForBarChart(locationId, datea);
             }
 
-            string xAxis = "x: [";
+            StringBuilder xAxis = new StringBuilder();
+            xAxis.Append("x: [");
 
             var dates = new List<DateTime>();
             Dictionary<DateTime, Mood> dic = new Dictionary<DateTime, Mood>();
@@ -326,39 +328,63 @@ namespace MoodServer
             {
                 dates.Add(dt);
                 dic.Add(dt, new Mood());
-                xAxis += "'" + dt.ToString("MM/dd/yyyy") + "',";
+                xAxis.Append("'" + dt.ToString("MM/dd/yyyy") + "',");
             }
 
-            xAxis = xAxis.Remove(xAxis.Length - 1);
-            xAxis += "],";
+            xAxis.Length -= 1;
+            xAxis.Append("],");
 
-            string vgJS = "var vg = {" + xAxis + "y: [";
-            string gJS = "var g = {" + xAxis + "y: [";
-            string bJS = "var b = {" + xAxis + "y: [";
-            string vbJS = "var vb = {" + xAxis + "y: [";
+            StringBuilder vgJS = new StringBuilder();
+            vgJS.Append("var vg = {");
+            vgJS.Append(xAxis.ToString());
+            vgJS.Append("y: [");
+            StringBuilder gJS = new StringBuilder();
+            gJS.Append("var g = {");
+            gJS.Append(xAxis.ToString());
+            gJS.Append("y: [");
+            StringBuilder bJS = new StringBuilder();
+            bJS.Append("var b = {");
+            bJS.Append(xAxis.ToString());
+            bJS.Append("y: [");
+            StringBuilder vbJS = new StringBuilder();
+            vbJS.Append("var vb = {");
+            vbJS.Append(xAxis.ToString());
+            vbJS.Append("y: [");
 
             GetAllEntriesBetweenDates(locationId, datea, dateb, dic);
 
             foreach (DateTime d in dates)
             {
-                vgJS += dic[d].VeryGood + ",";
-                gJS += dic[d].Good + ",";
-                bJS += dic[d].Bad + ",";
-                vbJS += dic[d].VeryBad + ",";
+                vgJS.Append(dic[d].VeryGood);
+                vgJS.Append(",");
+                gJS.Append(dic[d].Good);
+                gJS.Append(",");
+                bJS.Append(dic[d].Bad);
+                bJS.Append(",");
+                vbJS.Append(dic[d].VeryBad);
+                vbJS.Append(",");
             }
 
-            vgJS = vgJS.Remove(vgJS.Length - 1);
-            gJS = gJS.Remove(gJS.Length - 1);
-            bJS = bJS.Remove(bJS.Length - 1);
-            vbJS = vbJS.Remove(vbJS.Length - 1);
+            vgJS.Length -= 1;
+            gJS.Length -= 1;
+            bJS.Length -= 1;
+            vbJS.Length -= 1;
 
-            vgJS += "],name: 'Very Good',type: 'scatter'};";
-            gJS += "],name: 'Good',type: 'scatter'};";
-            bJS += "],name: 'Bad',type: 'scatter'};";
-            vbJS += "],name: 'Very Bad',type: 'scatter'};";
+            vgJS.Append("],name: 'Very Good',line: {shape: 'spline'},type: 'scatter'};");
+            gJS.Append("],name: 'Good',line: {shape: 'spline'},type: 'scatter'};");
+            bJS.Append("],name: 'Bad',line: {shape: 'spline'},type: 'scatter'};");
+            vbJS.Append("],name: 'Very Bad',line: {shape: 'spline'},type: 'scatter'};");
 
-            string layout = "var layout = {xaxis:{tickangle: -45}};";
-            return vgJS + gJS + bJS + vbJS + "var data = [vg,g,b,vb];" + layout + "Plotly.newPlot('diagram', data, layout);";
+            string layout = "var layout = {xaxis:{tickangle: -45,title: 'Time'},yaxis: {title: 'Amount of people per mood'}};";
+            StringBuilder script = new StringBuilder();
+            script.Append(vgJS.ToString());
+            script.Append(gJS.ToString());
+            script.Append(bJS.ToString());
+            script.Append(vbJS.ToString());
+            script.Append("var data = [vg,g,b,vb];");
+            script.Append(layout);
+            script.Append("Plotly.newPlot('diagram', data, layout);");
+            return script.ToString();
         }
 
         public void GetAllEntriesBetweenDates(string location, DateTime datea, DateTime dateb, Dictionary<DateTime, Mood> dic)
