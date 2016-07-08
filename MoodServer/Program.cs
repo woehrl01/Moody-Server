@@ -98,6 +98,20 @@ namespace MoodServer
                     {
                         if (!dayA.Equals("0") && !monthA.Equals("0") && !yearA.Equals("0"))
                         {
+                            StringBuilder script = new StringBuilder();
+                            script.Append(client.DownloadString("views/dia.html"));
+                            script.Append(db.MakePeriodChartScript(loc, new DateTime(Int32.Parse(year), Int32.Parse(month), Int32.Parse(day)), new DateTime(Int32.Parse(yearA), Int32.Parse(monthA), Int32.Parse(dayA)), "3"));
+                            return script.ToString();
+                        }
+                        else
+                        {
+                            return client.DownloadString("views/dia.html") + db.MakeBarChartScript(loc, new DateTime(Int32.Parse(year), Int32.Parse(month), Int32.Parse(day))) + "</html>";
+                        }
+                    }
+                    else if (chart.Equals("4"))
+                    {
+                        if (!dayA.Equals("0") && !monthA.Equals("0") && !yearA.Equals("0"))
+                        {
                             return client.DownloadString("views/dia.html") + db.MakePieChartScriptPeriod(loc, new DateTime(Int32.Parse(year), Int32.Parse(month), Int32.Parse(day)), new DateTime(Int32.Parse(yearA), Int32.Parse(monthA), Int32.Parse(dayA)));
                         }
                         else
@@ -456,17 +470,17 @@ namespace MoodServer
 
             if (type.Equals("1"))
             {
-                vgJS.Append("],name: 'Very Good',line: {shape: 'spline'},type: 'scatter'};");
-                gJS.Append("],name: 'Good',line: {shape: 'spline'},type: 'scatter'};");
-                bJS.Append("],name: 'Bad',line: {shape: 'spline'},type: 'scatter'};");
-                vbJS.Append("],name: 'Very Bad',line: {shape: 'spline'},type: 'scatter'};");
+                vgJS.Append("],name: 'Very Good',line: {shape: 'spline',color: 'rgba(44,160,44,1)'},type: 'scatter'};");
+                gJS.Append("],name: 'Good',line: {shape: 'spline',color: 'rgba(31,119,180,1)'},type: 'scatter'};");
+                bJS.Append("],name: 'Bad',line: {shape: 'spline',color: 'rgba(255,127,14,1)'},type: 'scatter'};");
+                vbJS.Append("],name: 'Very Bad',line: {shape: 'spline',color: 'rgba(214,39,40,1)'},type: 'scatter'};");
             }
-            else if(type.Equals("2"))
+            else if(type.Equals("2") || type.Equals("3"))
             {
-                vgJS.Append("],name: 'Very Good',type: 'bar'};");
-                gJS.Append("],name: 'Good',type: 'bar'};");
-                bJS.Append("],name: 'Bad',type: 'bar'};");
-                vbJS.Append("],name: 'Very Bad',type: 'bar'};");
+                vgJS.Append("],name: 'Very Good',type: 'bar',marker: {color: 'rgba(44,160,44,1)'}};");
+                gJS.Append("],name: 'Good',type: 'bar',marker: {color: 'rgba(31,119,180,1)'}};");
+                bJS.Append("],name: 'Bad',type: 'bar',marker: {color: 'rgba(255,127,14,1)'}};");
+                vbJS.Append("],name: 'Very Bad',type: 'bar',marker: {color: 'rgba(214,39,40,1)'}};");
             }
 
             StringBuilder layout = new StringBuilder();
@@ -480,7 +494,11 @@ namespace MoodServer
             {
                 layout.Append("',barmode: 'group',xaxis:{tickangle: -45,title: 'Time'},yaxis: {title: 'Amount of people per mood'}};");
             }
-            
+            else if (type.Equals("3"))
+            {
+                layout.Append("',barmode: 'stack',xaxis:{tickangle: -45,title: 'Time'},yaxis: {title: 'Amount of people per mood'}};");
+            }
+
             StringBuilder script = new StringBuilder();
             script.Append(vgJS.ToString());
             script.Append(gJS.ToString());
@@ -784,7 +802,7 @@ namespace MoodServer
 
             script.Append(values.ToString());
             script.Append(labels.ToString());
-            script.Append("type: 'pie'}];");
+            script.Append("type: 'pie',marker:{colors:['rgba(44,160,44,1)', 'rgba(31,119,180,1)', 'rgba(255,127,14,1)', 'rgba(214,39,40,1)'] }}];");   
             script.Append("Plotly.newPlot(gd, data);");
 
             return script.ToString();
