@@ -230,7 +230,6 @@ namespace MoodServer
         public void SaveMood(int mood, int location)
         {
             DateTime localDate = DateTime.Now;
-            Console.WriteLine(localDate.ToString());
             string guid = Guid.NewGuid().ToString(); ;
 
             string save = "INSERT into entries (Id,mood,location,date) VALUES (@id,@mood,@loc,@date)";
