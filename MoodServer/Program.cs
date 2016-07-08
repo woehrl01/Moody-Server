@@ -13,6 +13,7 @@ namespace MoodServer
 
         private void Start()
         {
+            Console.Title = "Mood Server Console";
             Thread.CurrentThread.CurrentCulture = new CultureInfo("en-US");
             var uri = new Uri($"{_url}:{_port}/");
             using (var nancy = new NancyHost(uri))
