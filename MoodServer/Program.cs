@@ -243,12 +243,17 @@ namespace MoodServer
 
         public string MakeBarChartScript(string loc,DateTime date)
         {
-            return "<script>$('#title').text('" + loc + " - " + date.ToString("MM/dd/yyyy") + "');document.title = '" + loc + " - " + date.ToString("MM/dd/yyyy") + "';" + GetEntriesForBarChart(GetIDByName(loc).ToString(), date) + "</script>";
+            return "<script>document.title = '" + loc + " - " + date.ToString("MM/dd/yyyy") + "';" + GetEntriesForBarChart(GetIDByName(loc).ToString(), date,loc) + "</script>";
         }
 
         public string MakeLineChartScript(string loc, DateTime datea, DateTime dateb)
         {
-            return "<script>" + GetEntriesForLineChart(GetIDByName(loc).ToString(), datea, dateb) + "$('#title').text('" + loc + " - " + datea.ToString("MM/dd/yyyy") + " - " + dateb.ToString("MM/dd/yyyy") + "');document.title = '" + loc + " - " + datea.ToString("MM/dd/yyyy") + " - " + dateb.ToString("MM/dd/yyyy") + "';</script></body>";
+            StringBuilder script = new StringBuilder();
+            script.Append("<script type='text/javascript'>");
+            script.Append(GetEntriesForLineChart(GetIDByName(loc).ToString(), datea, dateb, loc));
+            script.Append("document.title = '" + loc + " - " + datea.ToString("MM/dd/yyyy") + " - " + dateb.ToString("MM/dd/yyyy") + "';");
+            script.Append("</script><script src='/res/response.js'><style>.js-plotly-plot{margin:0;}</style></script></body></html>");
+            return script.ToString();
         }
 
         public int GetIDByName(string loc)
@@ -283,7 +288,7 @@ namespace MoodServer
             return id;
         }
 
-        public string GetEntriesForBarChart(string locationId, DateTime date)
+        public string GetEntriesForBarChart(string locationId, DateTime date, string locationName)
         {
             SqlCommand cmd;
             SqlDataReader reader = null;
@@ -322,13 +327,22 @@ namespace MoodServer
                 }
             }
 
-            string data = "var data = [{" + ToCoordinateString(x, "x") + ToCoordinateString(y, "y") + "marker:{color: ['rgba(44,160,44,1)', 'rgba(31,119,180,1)', 'rgba(255,127,14,1)', 'rgba(214,39,40,1)']},type: 'bar'}];Plotly.newPlot('diagram', data);";
+            StringBuilder script = new StringBuilder();
+            script.Append("var layout = {title: '");
+            script.Append(locationName);
+            script.Append(" - ");
+            script.Append(date.ToString("MM/dd/yyyy"));
+            script.Append("'};");
+            script.Append("var data = [{");
+            script.Append(ToCoordinateString(x, "x"));
+            script.Append(ToCoordinateString(y, "y"));
+            script.Append("marker:{color: ['rgba(44,160,44,1)', 'rgba(31,119,180,1)', 'rgba(255,127,14,1)', 'rgba(214,39,40,1)']},type: 'bar'}];Plotly.newPlot(gd, data, layout);");
             connection.Close();
             Console.WriteLine("SQL Connection Closed ! ");
-            return data;
+            return script.ToString();
         }
 
-        public string GetEntriesForLineChart(string locationId, DateTime datea, DateTime dateb)
+        public string GetEntriesForLineChart(string locationId, DateTime datea, DateTime dateb, string locationName)
         {
             if(datea > dateb)
             {
@@ -336,7 +350,7 @@ namespace MoodServer
             }
             else if(datea == dateb)
             {
-                return GetEntriesForBarChart(locationId, datea);
+                return GetEntriesForBarChart(locationId, datea,locationName);
             }
 
             StringBuilder xAxis = new StringBuilder();
@@ -395,15 +409,18 @@ namespace MoodServer
             bJS.Append("],name: 'Bad',line: {shape: 'spline'},type: 'scatter'};");
             vbJS.Append("],name: 'Very Bad',line: {shape: 'spline'},type: 'scatter'};");
 
-            string layout = "var layout = {xaxis:{tickangle: -45,title: 'Time'},yaxis: {title: 'Amount of people per mood'}};";
+            StringBuilder layout = new StringBuilder();
+            layout.Append("var layout = {title: '");
+            layout.Append(locationName + " - " + datea.ToString("MM/dd/yyyy") + " - " + dateb.ToString("MM/dd/yyyy"));
+            layout.Append("',xaxis:{tickangle: -45,title: 'Time'},yaxis: {title: 'Amount of people per mood'}};");
             StringBuilder script = new StringBuilder();
             script.Append(vgJS.ToString());
             script.Append(gJS.ToString());
             script.Append(bJS.ToString());
             script.Append(vbJS.ToString());
             script.Append("var data = [vg,g,b,vb];");
-            script.Append(layout);
-            script.Append("Plotly.newPlot('diagram', data, layout);");
+            script.Append(layout.ToString());
+            script.Append("Plotly.newPlot(gd, data, layout);");
             return script.ToString();
         }
 
