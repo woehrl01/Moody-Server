@@ -165,7 +165,7 @@ namespace MoodServer
         }
     }
 
-    internal class Program
+    public class Program
     {
         private string _url = "http://localhost";
         private int _port = 80;
@@ -197,7 +197,7 @@ namespace MoodServer
         }
     }
 
-    internal class DbManager
+    public class DbManager
     {
         public SqlConnection Connection;
 
@@ -221,7 +221,6 @@ namespace MoodServer
         public void SaveMood(int mood, int location)
         {
             DateTime localDate = DateTime.Now;
-            Console.WriteLine(localDate.ToString());
             string guid = Guid.NewGuid().ToString(); ;
 
             string save = "INSERT into entries (Id,mood,location,date) VALUES (@id,@mood,@loc,@date)";
@@ -824,7 +823,7 @@ namespace MoodServer
         }
     }
 
-    internal class Loc
+    public class Loc
     {
         public Loc(int id, string location)
         {
@@ -843,7 +842,7 @@ namespace MoodServer
         }
     }
 
-    internal class Mood
+    public class Mood
     {
         public int VeryGood { get; set; }
 
