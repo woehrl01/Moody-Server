@@ -25,8 +25,10 @@ namespace MoodServer
 
             Get[@"/"] = _ =>
             {
-                WebClient client = new WebClient();
-                return client.DownloadString("views/entry.html");
+                using(WebClient client = new WebClient())
+                {
+                    return client.DownloadString("views/entry.html");
+                }
             };
 
             Post["/"] = _ =>
@@ -45,8 +47,11 @@ namespace MoodServer
 
             Get["/results"] = parameters =>
             {
-                WebClient client = new WebClient();
-                return client.DownloadString("views/form.html");
+                using (WebClient client = new WebClient())
+                {
+                    return client.DownloadString("views/form.html");
+
+                }
             };
 
             Post["/results/diagram"] = _ =>
@@ -58,15 +63,50 @@ namespace MoodServer
                 string dayA = Request.Form.day2;
                 string monthA = Request.Form.month2;
                 string yearA = Request.Form.year2;
-                WebClient client = new WebClient();
-                if(!dayA.Equals("0") && !monthA.Equals("0") && !yearA.Equals("0"))
+                string chart = Request.Form.chart;
+                using(WebClient client = new WebClient())
                 {
-                    return client.DownloadString("views/dia.html") + db.MakeLineChartScript(loc, new DateTime(Int32.Parse(year), Int32.Parse(month), Int32.Parse(day)), new DateTime(Int32.Parse(yearA), Int32.Parse(monthA), Int32.Parse(dayA)));    
+                    if (chart.Equals("1"))
+                    {
+                        if (!dayA.Equals("0") && !monthA.Equals("0") && !yearA.Equals("0"))
+                        {
+                            StringBuilder script = new StringBuilder();
+                            script.Append(client.DownloadString("views/dia.html"));
+                            script.Append(db.MakePeriodChartScript(loc, new DateTime(Int32.Parse(year), Int32.Parse(month), Int32.Parse(day)), new DateTime(Int32.Parse(yearA), Int32.Parse(monthA), Int32.Parse(dayA)), "1"));
+                            return script.ToString();
+                        }
+                        else
+                        {
+                            return client.DownloadString("views/dia.html") + db.MakeBarChartScript(loc, new DateTime(Int32.Parse(year), Int32.Parse(month), Int32.Parse(day))) + "</html>";
+                        }
+                    }
+                    else if(chart.Equals("2"))
+                    {
+                        if (!dayA.Equals("0") && !monthA.Equals("0") && !yearA.Equals("0"))
+                        {
+                            StringBuilder script = new StringBuilder();
+                            script.Append(client.DownloadString("views/dia.html"));
+                            script.Append(db.MakePeriodChartScript(loc, new DateTime(Int32.Parse(year), Int32.Parse(month), Int32.Parse(day)), new DateTime(Int32.Parse(yearA), Int32.Parse(monthA), Int32.Parse(dayA)), "2"));
+                            return script.ToString();
+                        }
+                        else
+                        {     
+                            return client.DownloadString("views/dia.html") + db.MakeBarChartScript(loc, new DateTime(Int32.Parse(year), Int32.Parse(month), Int32.Parse(day))) + "</html>";
+                        }
+                    }
+                    else if (chart.Equals("3"))
+                    {
+                        if (!dayA.Equals("0") && !monthA.Equals("0") && !yearA.Equals("0"))
+                        {
+                            return client.DownloadString("views/dia.html") + db.MakePieChartScriptPeriod(loc, new DateTime(Int32.Parse(year), Int32.Parse(month), Int32.Parse(day)), new DateTime(Int32.Parse(yearA), Int32.Parse(monthA), Int32.Parse(dayA)));
+                        }
+                        else
+                        {
+                            return client.DownloadString("views/dia.html") + db.MakePieChartScript(loc, new DateTime(Int32.Parse(year), Int32.Parse(month), Int32.Parse(day)));
+                        }
+                    }
                 }
-                else
-                {
-                    return client.DownloadString("views/dia.html") + db.MakeBarChartScript(loc, new DateTime(Int32.Parse(year), Int32.Parse(month), Int32.Parse(day))) + "</html>";
-                }
+                return "alert('Something went wrong!');window.history.back();";
             };
 
             Get["/api/locations/"] = _ =>
@@ -243,17 +283,27 @@ namespace MoodServer
 
         public string MakeBarChartScript(string loc,DateTime date)
         {
-            return "<script>document.title = '" + loc + " - " + date.ToString("MM/dd/yyyy") + "';" + GetEntriesForBarChart(GetIDByName(loc).ToString(), date,loc) + "</script>";
+            return "<script>document.title = '" + loc + " - " + date.ToString("MM/dd/yyyy") + "';" + GetEntriesForBarChart(GetIDByName(loc).ToString(), date,loc) + "</script><script src='/res/response.js'><style>.js-plotly-plot{margin:0;}</style></script></body></html>";
         }
 
-        public string MakeLineChartScript(string loc, DateTime datea, DateTime dateb)
+        public string MakePeriodChartScript(string loc, DateTime datea, DateTime dateb,string type)
         {
             StringBuilder script = new StringBuilder();
             script.Append("<script type='text/javascript'>");
-            script.Append(GetEntriesForLineChart(GetIDByName(loc).ToString(), datea, dateb, loc));
+            script.Append(GetEntriesForPeriodChart(GetIDByName(loc).ToString(), datea, dateb, loc, type));
             script.Append("document.title = '" + loc + " - " + datea.ToString("MM/dd/yyyy") + " - " + dateb.ToString("MM/dd/yyyy") + "';");
             script.Append("</script><script src='/res/response.js'><style>.js-plotly-plot{margin:0;}</style></script></body></html>");
             return script.ToString();
+        }
+
+        public string MakePieChartScript(string loc, DateTime date)
+        {
+            return "<script>document.title = '" + loc + " - " + date.ToString("MM/dd/yyyy") + "';" + GetEntriesForPieChart(GetIDByName(loc).ToString(), date) + "</script><script src='/res/response.js'><style>.js-plotly-plot{margin:0;}</style></script></body></html>";
+        }
+
+        public string MakePieChartScriptPeriod(string loc, DateTime datea, DateTime dateb)
+        {
+            return "<script type='text/javascript'>" + GetEntriesForPieChartPeriod(GetIDByName(loc).ToString(), datea, dateb) + "document.title = '" + loc + " - " + datea.ToString("MM/dd/yyyy") + " - " + dateb.ToString("MM/dd/yyyy") + "';</script><script src='/res/response.js'><style>.js-plotly-plot{margin:0;}</style></script></body></html>";
         }
 
         public int GetIDByName(string loc)
@@ -342,7 +392,7 @@ namespace MoodServer
             return script.ToString();
         }
 
-        public string GetEntriesForLineChart(string locationId, DateTime datea, DateTime dateb, string locationName)
+        public string GetEntriesForPeriodChart(string locationId, DateTime datea, DateTime dateb, string locationName, string type)
         {
             if(datea > dateb)
             {
@@ -404,15 +454,33 @@ namespace MoodServer
             bJS.Length -= 1;
             vbJS.Length -= 1;
 
-            vgJS.Append("],name: 'Very Good',line: {shape: 'spline'},type: 'scatter'};");
-            gJS.Append("],name: 'Good',line: {shape: 'spline'},type: 'scatter'};");
-            bJS.Append("],name: 'Bad',line: {shape: 'spline'},type: 'scatter'};");
-            vbJS.Append("],name: 'Very Bad',line: {shape: 'spline'},type: 'scatter'};");
+            if (type.Equals("1"))
+            {
+                vgJS.Append("],name: 'Very Good',line: {shape: 'spline'},type: 'scatter'};");
+                gJS.Append("],name: 'Good',line: {shape: 'spline'},type: 'scatter'};");
+                bJS.Append("],name: 'Bad',line: {shape: 'spline'},type: 'scatter'};");
+                vbJS.Append("],name: 'Very Bad',line: {shape: 'spline'},type: 'scatter'};");
+            }
+            else if(type.Equals("2"))
+            {
+                vgJS.Append("],name: 'Very Good',type: 'bar'};");
+                gJS.Append("],name: 'Good',type: 'bar'};");
+                bJS.Append("],name: 'Bad',type: 'bar'};");
+                vbJS.Append("],name: 'Very Bad',type: 'bar'};");
+            }
 
             StringBuilder layout = new StringBuilder();
             layout.Append("var layout = {title: '");
             layout.Append(locationName + " - " + datea.ToString("MM/dd/yyyy") + " - " + dateb.ToString("MM/dd/yyyy"));
-            layout.Append("',xaxis:{tickangle: -45,title: 'Time'},yaxis: {title: 'Amount of people per mood'}};");
+            if (type.Equals("1"))
+            {
+                layout.Append("',xaxis:{tickangle: -45,title: 'Time'},yaxis: {title: 'Amount of people per mood'}};");
+            }
+            else if (type.Equals("2"))
+            {
+                layout.Append("',barmode: 'group',xaxis:{tickangle: -45,title: 'Time'},yaxis: {title: 'Amount of people per mood'}};");
+            }
+            
             StringBuilder script = new StringBuilder();
             script.Append(vgJS.ToString());
             script.Append(gJS.ToString());
@@ -424,16 +492,98 @@ namespace MoodServer
             return script.ToString();
         }
 
-        public void GetAllEntriesBetweenDates(string location, DateTime datea, DateTime dateb, Dictionary<DateTime, Mood> dic)
+        public string GetEntriesForPieChart(string locationId, DateTime date)
         {
             SqlCommand cmd;
             SqlDataReader reader = null;
-            Console.WriteLine("Getting all entries for locationId " + location + " between " + datea.ToString("MM/dd/yyyy") + " and " + dateb.ToString("MM/dd/yyyy"));
+            Dictionary<string, string> data = new Dictionary<string, string>();
             try
             {
                 connection.Open();
                 Console.WriteLine("SQL Connection Open ! ");
-                if (location.Equals("0"))
+                if (locationId.Equals("0"))
+                {
+                    cmd = new SqlCommand("SELECT count(e.mood),m.[Desc] FROM entries e left join mood m on e.mood = m.Id WHERE CONVERT(DATETIME, FLOOR(CONVERT(FLOAT, e.[date])), 101) = @date group by e.mood, m.[Desc], m.Id", connection);
+                    cmd.Parameters.AddWithValue("date", date.ToString("MM/dd/yyyy"));
+                }
+                else
+                {
+                    cmd = new SqlCommand("SELECT count(e.mood),m.[Desc] FROM entries e left join mood m on e.mood = m.Id WHERE CONVERT(DATETIME, FLOOR(CONVERT(FLOAT, e.[date])), 101) = @date and e.location = @location group by e.mood, m.[Desc], m.Id", connection);
+                    cmd.Parameters.AddWithValue("date", date.ToString("MM/dd/yyyy"));
+                    cmd.Parameters.AddWithValue("location", locationId);
+                }
+                reader = cmd.ExecuteReader();
+                Console.WriteLine("Getting entries for date " + date.ToString("MM/dd/yyyy") + " for locationID " + locationId + "...");
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Something went wrong ! ");
+                Console.WriteLine(e.Message);
+            }
+            if (reader.HasRows)
+            {
+                while (reader.Read())
+                {
+                    data.Add(reader.GetString(1), reader.GetInt32(0).ToString());
+                }
+            }
+            connection.Close();
+            Console.WriteLine("SQL Connection Closed ! ");
+            return ToPieChartScript(data);
+        }
+
+        public string GetEntriesForPieChartPeriod(string locationId, DateTime datea, DateTime dateb)
+        {
+            SqlCommand cmd;
+            SqlDataReader reader = null;
+            Dictionary<string, string> data = new Dictionary<string, string>();
+            try
+            {
+                connection.Open();
+                Console.WriteLine("SQL Connection Open ! ");
+                if (locationId.Equals("0"))
+                {
+                    cmd = new SqlCommand("SELECT count(e.mood),m.[Desc] FROM entries e left join mood m on e.mood = m.Id WHERE CONVERT(DATETIME, FLOOR(CONVERT(FLOAT, e.[date])), 101) between @datea and @dateb group by e.mood, m.[Desc], m.Id", connection);
+                    cmd.Parameters.AddWithValue("datea", datea.ToString("MM/dd/yyyy"));
+                    cmd.Parameters.AddWithValue("dateb", dateb.ToString("MM/dd/yyyy"));
+                }
+                else
+                {
+                    cmd = new SqlCommand("SELECT count(e.mood),m.[Desc] FROM entries e left join mood m on e.mood = m.Id WHERE CONVERT(DATETIME, FLOOR(CONVERT(FLOAT, e.[date])), 101) between @datea and @dateb and e.location = @location group by e.mood, m.[Desc], m.Id", connection);
+                    cmd.Parameters.AddWithValue("datea", datea.ToString("MM/dd/yyyy"));
+                    cmd.Parameters.AddWithValue("dateb", dateb.ToString("MM/dd/yyyy"));
+                    cmd.Parameters.AddWithValue("location", locationId);
+                }
+                reader = cmd.ExecuteReader();
+                Console.WriteLine("Getting entries for locationID " + locationId + " between " + datea.ToString("MM/dd/yyyy") + " and " + dateb.ToString("MM/dd/yyyy") +  "...");
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Something went wrong ! ");
+                Console.WriteLine(e.Message);
+            }
+            if (reader.HasRows)
+            {
+                while (reader.Read())
+                {
+                    data.Add(reader.GetString(1), reader.GetInt32(0).ToString());
+                }
+            }
+            connection.Close();
+            Console.WriteLine("SQL Connection Closed ! ");
+            return ToPieChartScript(data);
+        }
+
+        public void GetAllEntriesBetweenDates(string locationId, DateTime datea, DateTime dateb, Dictionary<DateTime, Mood> dic)
+        {
+            SqlCommand cmd;
+            SqlDataReader reader = null;
+            Console.WriteLine("Getting all entries for locationId " + locationId + " between " + datea.ToString("MM/dd/yyyy") + " and " + dateb.ToString("MM/dd/yyyy"));
+            try
+            {
+                connection.Open();
+                Console.WriteLine("SQL Connection Open ! ");
+                if (locationId.Equals("0"))
                 {
                     cmd = new SqlCommand("SELECT CONVERT(DATETIME, FLOOR(CONVERT(FLOAT, [date])),101),mood,count(mood) FROM entries WHERE CONVERT(DATETIME, FLOOR(CONVERT(FLOAT, [date])),101) between @datea and @dateb group by CONVERT(DATETIME, FLOOR(CONVERT(FLOAT, [date])),101), mood", connection);
                     cmd.Parameters.AddWithValue("datea", datea);
@@ -444,7 +594,7 @@ namespace MoodServer
                     cmd = new SqlCommand("SELECT CONVERT(DATETIME, FLOOR(CONVERT(FLOAT, [date])),101),mood,count(mood) FROM entries WHERE location = @location and CONVERT(DATETIME, FLOOR(CONVERT(FLOAT, [date])),101) between @datea and @dateb group by CONVERT(DATETIME, FLOOR(CONVERT(FLOAT, [date])),101), mood", connection);
                     cmd.Parameters.AddWithValue("datea", datea);
                     cmd.Parameters.AddWithValue("dateb", dateb.AddDays(1).AddSeconds(-1));
-                    cmd.Parameters.AddWithValue("location", location);
+                    cmd.Parameters.AddWithValue("location", locationId);
                 }
                 reader = cmd.ExecuteReader();
             }
@@ -608,6 +758,36 @@ namespace MoodServer
                 Console.WriteLine("Something went wrong ! ");
             }
             return json;
+        }
+
+        public string ToPieChartScript(Dictionary<string,string> data)
+        {
+            StringBuilder script = new StringBuilder();
+            script.Append("var data = [{");
+
+            StringBuilder values = new StringBuilder();
+            values.Append("values: [");
+            StringBuilder labels = new StringBuilder();
+            labels.Append("labels: [");
+
+            foreach(KeyValuePair<string, string> entry in data)
+            {
+                values.Append(entry.Value + ",");
+                labels.Append("'" + entry.Key + "',");
+            }
+
+            values.Length -= 1;
+            labels.Length -= 1;
+
+            values.Append("],");
+            labels.Append("],");
+
+            script.Append(values.ToString());
+            script.Append(labels.ToString());
+            script.Append("type: 'pie'}];");
+            script.Append("Plotly.newPlot(gd, data);");
+
+            return script.ToString();
         }
 
         public string ToCoordinateString(List<string> coordAsList, string type)
