@@ -268,6 +268,7 @@ namespace MoodServer
                 {
                     connection.Close();
                     Console.WriteLine("SQL Connection Closed ! ");
+                    Console.WriteLine("");
                 }
             }
         }
@@ -348,6 +349,7 @@ namespace MoodServer
             }
             connection.Close();
             Console.WriteLine("SQL Connection Closed ! ");
+            Console.WriteLine("");
 
             return id;
         }
@@ -403,6 +405,7 @@ namespace MoodServer
             script.Append("marker:{color: ['rgba(44,160,44,1)', 'rgba(31,119,180,1)', 'rgba(255,127,14,1)', 'rgba(214,39,40,1)']},type: 'bar'}];Plotly.newPlot(gd, data, layout);");
             connection.Close();
             Console.WriteLine("SQL Connection Closed ! ");
+            Console.WriteLine("");
             return script.ToString();
         }
 
@@ -547,6 +550,7 @@ namespace MoodServer
             }
             connection.Close();
             Console.WriteLine("SQL Connection Closed ! ");
+            Console.WriteLine("");
             return ToPieChartScript(data);
         }
 
@@ -589,6 +593,7 @@ namespace MoodServer
             }
             connection.Close();
             Console.WriteLine("SQL Connection Closed ! ");
+            Console.WriteLine("");
             return ToPieChartScript(data);
         }
 
@@ -596,11 +601,11 @@ namespace MoodServer
         {
             SqlCommand cmd;
             SqlDataReader reader = null;
-            Console.WriteLine("Getting all entries for locationId " + locationId + " between " + datea.ToString("MM/dd/yyyy") + " and " + dateb.ToString("MM/dd/yyyy"));
             try
             {
                 connection.Open();
                 Console.WriteLine("SQL Connection Open ! ");
+                Console.WriteLine("Getting all entries for locationId " + locationId + " between " + datea.ToString("MM/dd/yyyy") + " and " + dateb.ToString("MM/dd/yyyy"));
                 if (locationId.Equals("0"))
                 {
                     cmd = new SqlCommand("SELECT CONVERT(DATETIME, FLOOR(CONVERT(FLOAT, [date])),101),mood,count(mood) FROM entries WHERE CONVERT(DATETIME, FLOOR(CONVERT(FLOAT, [date])),101) between @datea and @dateb group by CONVERT(DATETIME, FLOOR(CONVERT(FLOAT, [date])),101), mood", connection);
@@ -664,6 +669,7 @@ namespace MoodServer
             }
             connection.Close();
             Console.WriteLine("SQL Connection Closed ! ");
+            Console.WriteLine("");
         }
 
         [Obsolete ("Use Method GetAllEntriesBetweenDates instead")]
@@ -721,6 +727,7 @@ namespace MoodServer
 
             connection.Close();
             Console.WriteLine("SQL Connection Closed ! ");
+            Console.WriteLine("");
             return amount;
         }
 
@@ -765,6 +772,7 @@ namespace MoodServer
 
             connection.Close();
             Console.WriteLine("SQL Connection Closed ! ");
+            Console.WriteLine("");
 
             string json = null;
             try
