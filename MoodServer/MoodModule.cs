@@ -8,7 +8,7 @@ namespace MoodServer
     public class MoodModule : NancyModule
     {
 
-        private readonly DbManager _db;
+        private readonly IDbManager _db;
 
         public MoodModule()
         {

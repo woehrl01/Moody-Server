@@ -126,12 +126,14 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DbManager.cs" />
+    <Compile Include="IDbManager.cs" />
     <Compile Include="Loc.cs" />
     <Compile Include="Mood.cs" />
     <Compile Include="MoodModule.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="StatusCodeHandler.cs" />
+    <Compile Include="TestManager.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

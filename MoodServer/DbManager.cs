@@ -9,7 +9,7 @@ using Newtonsoft.Json;
 
 namespace MoodServer
 {
-    public class DbManager
+    public class DbManager : IDbManager
     {
         public SqlConnection Connection;
 
