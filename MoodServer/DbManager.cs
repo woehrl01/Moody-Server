@@ -86,21 +86,30 @@ namespace MoodServer
                 locs.Add(l.Location);
             }
 
-            string script = "var x = document.getElementById('locations');";
+            StringBuilder script = new StringBuilder();
+            script.Append("var x = document.getElementById('locations');");
 
             foreach (string s in locs)
             {
-                script += "var option = document.createElement('option');option.text ='" + s + "';x.add(option); ";
+                script.Append("var option = document.createElement('option');option.text ='" + s + "';x.add(option); ");
             }
-            script += "document.getElementById('day_1').value = '" + DateTime.Today.Day.ToString() + "';";
-            script += "document.getElementById('month_1').value = '" + DateTime.Today.Month.ToString() + "';";
-            script += "document.getElementById('year_1').value = '" + DateTime.Today.Year.ToString() + "';";
-            return script;
+            script.Append("document.getElementById('day_1').value = '" + DateTime.Today.Day.ToString() + "';");
+            script.Append("document.getElementById('month_1').value = '" + DateTime.Today.Month.ToString() + "';");
+            script.Append("document.getElementById('year_1').value = '" + DateTime.Today.Year.ToString() + "';");
+            return script.ToString();
         }
 
         public string MakeBarChartScript(string loc,DateTime date)
         {
-            return "<script>document.title = '" + loc + " - " + date.ToString("MM/dd/yyyy") + "';" + GetEntriesForBarChart(GetIdByName(loc).ToString(), date,loc) + "</script><script src='/res/response.js'><style>.js-plotly-plot{margin:0;}</style></script></body></html>";
+            StringBuilder script = new StringBuilder();
+            script.Append("<script>document.title = '");
+            script.Append(loc);
+            script.Append(" - ");
+            script.Append(date.ToString("MM/dd/yyyy"));
+            script.Append("';");
+            script.Append(GetEntriesForBarChart(GetIdByName(loc).ToString(), date, loc));
+            script.Append("</script><script src='/res/response.js'><style>.js-plotly-plot{margin:0;}</style></script></body></html>");
+            return script.ToString();
         }
 
         public string MakePeriodChartScript(string loc, DateTime datea, DateTime dateb,string type)
@@ -115,12 +124,29 @@ namespace MoodServer
 
         public string MakePieChartScript(string loc, DateTime date)
         {
-            return "<script>document.title = '" + loc + " - " + date.ToString("MM/dd/yyyy") + "';" + GetEntriesForPieChart(GetIdByName(loc).ToString(), date) + "</script><script src='/res/response.js'><style>.js-plotly-plot{margin:0;}</style></script></body></html>";
+            StringBuilder script = new StringBuilder();
+            script.Append("<script>document.title = '");
+            script.Append(loc);
+            script.Append(date.ToString("MM/dd/yyyy"));
+            script.Append("';");
+            script.Append(GetEntriesForPieChart(GetIdByName(loc).ToString(), date));
+            script.Append("</script><script src='/res/response.js'><style>.js-plotly-plot{margin:0;}</style></script></body></html>");
+            return script.ToString();
         }
 
         public string MakePieChartScriptPeriod(string loc, DateTime datea, DateTime dateb)
         {
-            return "<script type='text/javascript'>" + GetEntriesForPieChartPeriod(GetIdByName(loc).ToString(), datea, dateb) + "document.title = '" + loc + " - " + datea.ToString("MM/dd/yyyy") + " - " + dateb.ToString("MM/dd/yyyy") + "';</script><script src='/res/response.js'><style>.js-plotly-plot{margin:0;}</style></script></body></html>";
+            StringBuilder script = new StringBuilder();
+            script.Append("<script type='text/javascript'>");
+            script.Append(GetEntriesForPieChartPeriod(GetIdByName(loc).ToString(), datea, dateb));
+            script.Append("document.title = '");
+            script.Append(loc);
+            script.Append(" - ");
+            script.Append(datea.ToString("MM/dd/yyyy"));
+            script.Append(" - ");
+            script.Append(dateb.ToString("MM/dd/yyyy"));
+            script.Append("';</script><script src='/res/response.js'><style>.js-plotly-plot{margin:0;}</style></script></body></html>");
+            return script.ToString();
         }
 
         public int GetIdByName(string loc)
@@ -616,22 +642,18 @@ namespace MoodServer
 
         public string ToCoordinateString(List<string> coordAsList, string type)
         {
-            string xy = type + ": [";
+            StringBuilder xy = new StringBuilder();
+            xy.Append(type);
+            xy.Append(": [");
             bool set = false;
             foreach (string loc in coordAsList)
             {
-                if (set)
-                {
-                    xy += "," + loc;
-                }
-                else
-                {
-                    xy += loc;
-                    set = true;
-                }
+                xy.Append(loc);
+                xy.Append(",");
             }
-            xy += "],";
-            return xy;
+            xy.Length -= 1;
+            xy.Append("],");
+            return xy.ToString();
         }
     }
 }

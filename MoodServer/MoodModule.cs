@@ -57,57 +57,59 @@ namespace MoodServer
                 string chart = Request.Form.chart;
                 using(WebClient client = new WebClient())
                 {
+                    StringBuilder script = new StringBuilder();
+                    script.Append(client.DownloadString("views/dia.html"));
+
                     if (chart.Equals("1"))
                     {
                         if (!dayA.Equals("0") && !monthA.Equals("0") && !yearA.Equals("0"))
-                        {
-                            StringBuilder script = new StringBuilder();
-                            script.Append(client.DownloadString("views/dia.html"));
+                        {                            
                             script.Append(_db.MakePeriodChartScript(loc, new DateTime(Int32.Parse(year), Int32.Parse(month), Int32.Parse(day)), new DateTime(Int32.Parse(yearA), Int32.Parse(monthA), Int32.Parse(dayA)), "1"));
                             return script.ToString();
                         }
                         else
                         {
-                            return client.DownloadString("views/dia.html") + _db.MakeBarChartScript(loc, new DateTime(Int32.Parse(year), Int32.Parse(month), Int32.Parse(day))) + "</html>";
+                            script.Append(_db.MakeBarChartScript(loc, new DateTime(Int32.Parse(year), Int32.Parse(month), Int32.Parse(day))));
+                            return script.ToString();
                         }
                     }
                     else if(chart.Equals("2"))
                     {
                         if (!dayA.Equals("0") && !monthA.Equals("0") && !yearA.Equals("0"))
                         {
-                            StringBuilder script = new StringBuilder();
-                            script.Append(client.DownloadString("views/dia.html"));
                             script.Append(_db.MakePeriodChartScript(loc, new DateTime(Int32.Parse(year), Int32.Parse(month), Int32.Parse(day)), new DateTime(Int32.Parse(yearA), Int32.Parse(monthA), Int32.Parse(dayA)), "2"));
                             return script.ToString();
                         }
                         else
                         {     
-                            return client.DownloadString("views/dia.html") + _db.MakeBarChartScript(loc, new DateTime(Int32.Parse(year), Int32.Parse(month), Int32.Parse(day))) + "</html>";
+                            script.Append(_db.MakeBarChartScript(loc, new DateTime(Int32.Parse(year), Int32.Parse(month), Int32.Parse(day))));
+                            return script.ToString();
                         }
                     }
                     else if (chart.Equals("3"))
                     {
                         if (!dayA.Equals("0") && !monthA.Equals("0") && !yearA.Equals("0"))
                         {
-                            StringBuilder script = new StringBuilder();
-                            script.Append(client.DownloadString("views/dia.html"));
                             script.Append(_db.MakePeriodChartScript(loc, new DateTime(Int32.Parse(year), Int32.Parse(month), Int32.Parse(day)), new DateTime(Int32.Parse(yearA), Int32.Parse(monthA), Int32.Parse(dayA)), "3"));
                             return script.ToString();
                         }
                         else
                         {
-                            return client.DownloadString("views/dia.html") + _db.MakeBarChartScript(loc, new DateTime(Int32.Parse(year), Int32.Parse(month), Int32.Parse(day))) + "</html>";
+                            script.Append(_db.MakeBarChartScript(loc, new DateTime(Int32.Parse(year), Int32.Parse(month), Int32.Parse(day))));
+                            return script.ToString();
                         }
                     }
                     else if (chart.Equals("4"))
                     {
                         if (!dayA.Equals("0") && !monthA.Equals("0") && !yearA.Equals("0"))
                         {
-                            return client.DownloadString("views/dia.html") + _db.MakePieChartScriptPeriod(loc, new DateTime(Int32.Parse(year), Int32.Parse(month), Int32.Parse(day)), new DateTime(Int32.Parse(yearA), Int32.Parse(monthA), Int32.Parse(dayA)));
+                            script.Append(_db.MakePieChartScriptPeriod(loc, new DateTime(Int32.Parse(year), Int32.Parse(month), Int32.Parse(day)), new DateTime(Int32.Parse(yearA), Int32.Parse(monthA), Int32.Parse(dayA))));
+                            return script.ToString();
                         }
                         else
                         {
-                            return client.DownloadString("views/dia.html") + _db.MakePieChartScript(loc, new DateTime(Int32.Parse(year), Int32.Parse(month), Int32.Parse(day)));
+                            script.Append(_db.MakePieChartScript(loc, new DateTime(Int32.Parse(year), Int32.Parse(month), Int32.Parse(day))));
+                            return script.ToString();
                         }
                     }
                 }
