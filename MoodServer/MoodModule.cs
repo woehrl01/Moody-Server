@@ -1,5 +1,6 @@
 using System;
 using System.Net;
+using System.Runtime.InteropServices;
 using System.Text;
 using Nancy;
 
@@ -10,9 +11,9 @@ namespace MoodServer
 
         private readonly IDbManager _db;
 
-        public MoodModule()
+        public MoodModule(IDbManager db)
         {
-            _db = new DbManager();
+            _db = db;
 
             Get[@"/"] = _ =>
             {

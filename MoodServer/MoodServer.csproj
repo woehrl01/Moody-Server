@@ -126,10 +126,13 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DbManager.cs" />
+    <Compile Include="EmbeddedDatabaseConfig.cs" />
     <Compile Include="IDbManager.cs" />
+    <Compile Include="IDatabaseConfig.cs" />
     <Compile Include="Loc.cs" />
     <Compile Include="Mood.cs" />
     <Compile Include="MoodModule.cs" />
+    <Compile Include="MoodyBootstrapper.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="StatusCodeHandler.cs" />

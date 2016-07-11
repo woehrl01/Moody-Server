@@ -11,17 +11,20 @@ namespace MoodServer
 {
     public class DbManager : IDbManager
     {
-        public SqlConnection Connection;
+        private SqlConnection Connection { get;  }
 
-        public DbManager()
+        public DbManager(IDatabaseConfig dbConfig)
         {
-            String connectionString = "Data Source=PROTEUSIV\\SQLEXPRESS;Initial Catalog=mood;Integrated Security=True;Connect Timeout=15;Encrypt=False;TrustServerCertificate=True;ApplicationIntent=ReadWrite;MultiSubnetFailover=False";
+            string connectionString = dbConfig.ConnectionString;
             Connection = new SqlConnection(connectionString);
-
+            
+            Console.WriteLine("Trying to connect to the database...");
             try
             {
                 Connection.Open();
                 Connection.Close();
+                Console.WriteLine("Connection succesful!");
+                Console.WriteLine("");
             }
             catch (Exception ex)
             {
@@ -181,7 +184,7 @@ namespace MoodServer
             return id;
         }
 
-        public string GetEntriesForBarChart(string locationId, DateTime date, string locationName)
+        private string GetEntriesForBarChart(string locationId, DateTime date, string locationName)
         {
             SqlDataReader reader = null;
             List<string> x = new List<string>();
@@ -236,7 +239,7 @@ namespace MoodServer
             return script.ToString();
         }
 
-        public string GetEntriesForPeriodChart(string locationId, DateTime datea, DateTime dateb, string locationName, string type)
+        private string GetEntriesForPeriodChart(string locationId, DateTime datea, DateTime dateb, string locationName, string type)
         {
             if(datea > dateb)
             {
@@ -340,7 +343,7 @@ namespace MoodServer
             return script.ToString();
         }
 
-        public string GetEntriesForPieChart(string locationId, DateTime date)
+        private string GetEntriesForPieChart(string locationId, DateTime date)
         {
             SqlDataReader reader = null;
             Dictionary<string, string> data = new Dictionary<string, string>();
@@ -381,7 +384,7 @@ namespace MoodServer
             return ToPieChartScript(data);
         }
 
-        public string GetEntriesForPieChartPeriod(string locationId, DateTime datea, DateTime dateb)
+        private string GetEntriesForPieChartPeriod(string locationId, DateTime datea, DateTime dateb)
         {
             SqlDataReader reader = null;
             Dictionary<string, string> data = new Dictionary<string, string>();
@@ -424,7 +427,7 @@ namespace MoodServer
             return ToPieChartScript(data);
         }
 
-        public void GetAllEntriesBetweenDates(string locationId, DateTime datea, DateTime dateb, Dictionary<DateTime, Mood> dic)
+        private void GetAllEntriesBetweenDates(string locationId, DateTime datea, DateTime dateb, Dictionary<DateTime, Mood> dic)
         {
             SqlDataReader reader = null;
             try
@@ -610,7 +613,7 @@ namespace MoodServer
             return json;
         }
 
-        public string ToPieChartScript(Dictionary<string,string> data)
+        private string ToPieChartScript(Dictionary<string,string> data)
         {
             StringBuilder script = new StringBuilder();
             script.Append("var data = [{");
@@ -640,7 +643,7 @@ namespace MoodServer
             return script.ToString();
         }
 
-        public string ToCoordinateString(List<string> coordAsList, string type)
+        private string ToCoordinateString(List<string> coordAsList, string type)
         {
             StringBuilder xy = new StringBuilder();
             xy.Append(type);
