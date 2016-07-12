@@ -30,6 +30,9 @@ namespace MoodServer
             {
                 Console.WriteLine("Can not open connection to SQL Server ! ");
                 Console.WriteLine(ex.Message);
+                Console.WriteLine("Press any key to exit");
+                Console.ReadLine();
+                Environment.Exit(0);
             }
         }
 

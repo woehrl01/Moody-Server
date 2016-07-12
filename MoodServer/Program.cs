@@ -18,8 +18,6 @@ namespace MoodServer
             var uri = new Uri($"{_url}:{_port}/");
             using (var nancy = new NancyHost(uri))
             {
-                
-
                 try
                 {
                     nancy.Start();

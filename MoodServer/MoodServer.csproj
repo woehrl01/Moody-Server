@@ -127,6 +127,7 @@
   <ItemGroup>
     <Compile Include="DbManager.cs" />
     <Compile Include="EmbeddedDatabaseConfig.cs" />
+    <Compile Include="ExternalDatabaseConfig.cs" />
     <Compile Include="IDbManager.cs" />
     <Compile Include="IDatabaseConfig.cs" />
     <Compile Include="Loc.cs" />
@@ -140,6 +141,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+    <None Include="cfg.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Include="CodeMap.dgml" />
     <None Include="MoodServer_TemporaryKey.pfx" />
     <None Include="packages.config" />

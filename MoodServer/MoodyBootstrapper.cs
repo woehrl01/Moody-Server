@@ -9,8 +9,8 @@ namespace MoodServer
         {
             base.ConfigureApplicationContainer(container);
 
-            container.Register<IDbManager, TestManager>();
-            container.Register<IDatabaseConfig, EmbeddedDatabaseConfig>();
+            container.Register<IDbManager, DbManager>();
+            container.Register<IDatabaseConfig, ExternalDatabaseConfig>();
         }
     }
 }
