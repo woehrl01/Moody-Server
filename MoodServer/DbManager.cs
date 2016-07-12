@@ -5,6 +5,7 @@ using System.Data.SqlClient;
 using System.Globalization;
 using System.Text;
 using System.Threading;
+using Exceptionless;
 using Newtonsoft.Json;
 
 namespace MoodServer
@@ -28,6 +29,7 @@ namespace MoodServer
             }
             catch (Exception ex)
             {
+                ex.ToExceptionless().Submit();
                 Console.WriteLine("Can not open connection to SQL Server ! ");
                 Console.WriteLine(ex.Message);
                 Console.WriteLine("Press any key to exit");
@@ -69,6 +71,7 @@ namespace MoodServer
                 }
                 catch (SqlException e)
                 {
+                    e.ToExceptionless().Submit();
                     Console.WriteLine("Something went wrong ! ");
                     Console.WriteLine(e.Message);
                 }
@@ -170,6 +173,7 @@ namespace MoodServer
             }
             catch (Exception e)
             {
+                e.ToExceptionless().Submit();
                 Console.WriteLine("Something went wrong ! ");
                 Console.WriteLine(e.Message);
             }
@@ -213,6 +217,7 @@ namespace MoodServer
             }
             catch (Exception e)
             {
+                e.ToExceptionless().Submit();
                 Console.WriteLine("Something went wrong ! ");
                 Console.WriteLine(e.Message);
             }
@@ -371,6 +376,7 @@ namespace MoodServer
             }
             catch (Exception e)
             {
+                e.ToExceptionless().Submit();
                 Console.WriteLine("Something went wrong ! ");
                 Console.WriteLine(e.Message);
             }
@@ -414,6 +420,7 @@ namespace MoodServer
             }
             catch (Exception e)
             {
+                e.ToExceptionless().Submit();
                 Console.WriteLine("Something went wrong ! ");
                 Console.WriteLine(e.Message);
             }
@@ -456,6 +463,7 @@ namespace MoodServer
             }
             catch (Exception e)
             {
+                e.ToExceptionless().Submit();
                 Console.WriteLine("Something went wrong ! ");
                 Console.WriteLine(e.Message);
             }
@@ -533,6 +541,7 @@ namespace MoodServer
             }
             catch (Exception e)
             {
+                e.ToExceptionless().Submit();
                 Console.WriteLine("Something went wrong ! ");
                 Console.WriteLine(e.Message);
             }
@@ -575,6 +584,7 @@ namespace MoodServer
             }
             catch (Exception e)
             {
+                e.ToExceptionless().Submit();
                 Console.WriteLine("Something went wrong ! ");
                 Console.WriteLine(e.Message);
             }
@@ -609,8 +619,9 @@ namespace MoodServer
             {
                 json = JsonConvert.SerializeObject(loc, Formatting.Indented);
             }
-            catch (Exception)
+            catch (Exception e)
             {
+                e.ToExceptionless().Submit();
                 Console.WriteLine("Something went wrong ! ");
             }
             return json;

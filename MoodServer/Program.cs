@@ -2,6 +2,7 @@
 using System;
 using System.Globalization;
 using System.Threading;
+using Exceptionless;
 
 namespace MoodServer
 {
@@ -13,6 +14,7 @@ namespace MoodServer
 
         private void Start()
         {
+            ExceptionlessClient.Default.Startup("3lSIuYT0NR6iXMffO7FIi46Ga5DJL8K3G1xmS2E0");
             Console.Title = "Mood Server Console";
             Thread.CurrentThread.CurrentCulture = new CultureInfo("en-US");
             var uri = new Uri($"{_url}:{_port}/");
@@ -25,6 +27,7 @@ namespace MoodServer
                 }
                 catch (Exception e)
                 {
+                    e.ToExceptionless().Submit();
                     Console.WriteLine(e.Message);
                 }
                 Console.ReadKey();

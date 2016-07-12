@@ -34,3 +34,4 @@ using System.Runtime.InteropServices;
 // [assembly: AssemblyVersion("1.0.*")]
 [assembly: AssemblyVersion("1.0.0.0")]
 [assembly: AssemblyFileVersion("1.0.0.0")]
+[assembly: Exceptionless.Configuration.Exceptionless("3lSIuYT0NR6iXMffO7FIi46Ga5DJL8K3G1xmS2E0")]

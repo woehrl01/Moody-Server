@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using Exceptionless;
 using Newtonsoft.Json;
 
 namespace MoodServer
@@ -20,8 +21,9 @@ namespace MoodServer
                         return e.connection;
                     }
                 }
-                catch (Exception)
+                catch (Exception e)
                 {
+                    e.ToExceptionless().Submit();
                     Console.WriteLine("Could not load the configuration");
                 }
                 return "";
