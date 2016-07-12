@@ -14,6 +14,7 @@ namespace MoodServer
 
         private void Start()
         {
+            Console.Clear();
             ExceptionlessClient.Default.Startup("3lSIuYT0NR6iXMffO7FIi46Ga5DJL8K3G1xmS2E0");
             Console.Title = "Mood Server Console";
             Thread.CurrentThread.CurrentCulture = new CultureInfo("en-US");

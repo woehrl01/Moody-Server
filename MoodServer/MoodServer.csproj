@@ -150,9 +150,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
-    <None Include="cfg.json">
+    <Content Include="cfg.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
+    </Content>
     <None Include="CodeMap.dgml" />
     <None Include="Map.xps" />
     <None Include="MoodServer_TemporaryKey.pfx" />
