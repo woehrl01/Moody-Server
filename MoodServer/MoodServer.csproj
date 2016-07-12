@@ -145,6 +145,7 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Include="CodeMap.dgml" />
+    <None Include="Map.xps" />
     <None Include="MoodServer_TemporaryKey.pfx" />
     <None Include="packages.config" />
   </ItemGroup>
