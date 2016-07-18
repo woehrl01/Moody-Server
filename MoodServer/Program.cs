@@ -24,7 +24,7 @@ namespace MoodServer
                 try
                 {
                     nancy.Start();
-                    Console.WriteLine($"Started listennig port on {_port}");
+                    Console.WriteLine($"Started listennig port on {_port} \n");
                 }
                 catch (Exception e)
                 {

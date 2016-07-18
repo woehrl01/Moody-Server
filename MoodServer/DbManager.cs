@@ -24,8 +24,7 @@ namespace MoodServer
             {
                 Connection.Open();
                 Connection.Close();
-                Console.WriteLine("Connection succesful!");
-                Console.WriteLine("");
+                Console.WriteLine("Connection succesful! \n");
             }
             catch (Exception ex)
             {
@@ -78,8 +77,7 @@ namespace MoodServer
                 finally
                 {
                     Connection.Close();
-                    Console.WriteLine("SQL Connection Closed ! ");
-                    Console.WriteLine("");
+                    Console.WriteLine("SQL Connection Closed ! \n");
                 }
             }
         }
@@ -185,8 +183,7 @@ namespace MoodServer
                 }
             }
             Connection.Close();
-            Console.WriteLine("SQL Connection Closed ! ");
-            Console.WriteLine("");
+            Console.WriteLine("SQL Connection Closed ! \n");
 
             return id;
         }
@@ -242,8 +239,7 @@ namespace MoodServer
             script.Append(ToCoordinateString(y, "y"));
             script.Append("marker:{color: ['rgba(44,160,44,1)', 'rgba(31,119,180,1)', 'rgba(255,127,14,1)', 'rgba(214,39,40,1)']},type: 'bar'}];Plotly.newPlot(gd, data, layout);");
             Connection.Close();
-            Console.WriteLine("SQL Connection Closed ! ");
-            Console.WriteLine("");
+            Console.WriteLine("SQL Connection Closed ! \n");
             return script.ToString();
         }
 
@@ -388,8 +384,7 @@ namespace MoodServer
                 }
             }
             Connection.Close();
-            Console.WriteLine("SQL Connection Closed ! ");
-            Console.WriteLine("");
+            Console.WriteLine("SQL Connection Closed ! \n");
             return ToPieChartScript(data);
         }
 
@@ -432,8 +427,7 @@ namespace MoodServer
                 }
             }
             Connection.Close();
-            Console.WriteLine("SQL Connection Closed ! ");
-            Console.WriteLine("");
+            Console.WriteLine("SQL Connection Closed ! \n");
             return ToPieChartScript(data);
         }
 
@@ -509,8 +503,7 @@ namespace MoodServer
                 Console.WriteLine("Something went wrong ! ");
             }
             Connection.Close();
-            Console.WriteLine("SQL Connection Closed ! ");
-            Console.WriteLine("");
+            Console.WriteLine("SQL Connection Closed ! \n");
         }
 
         [Obsolete ("Use Method GetAllEntriesBetweenDates instead")]
@@ -566,8 +559,7 @@ namespace MoodServer
             }
 
             Connection.Close();
-            Console.WriteLine("SQL Connection Closed ! ");
-            Console.WriteLine("");
+            Console.WriteLine("SQL Connection Closed ! \n");
             return amount;
         }
 
@@ -611,8 +603,7 @@ namespace MoodServer
             }
 
             Connection.Close();
-            Console.WriteLine("SQL Connection Closed ! ");
-            Console.WriteLine("");
+            Console.WriteLine("SQL Connection Closed ! \n");
 
             string json = null;
             try
