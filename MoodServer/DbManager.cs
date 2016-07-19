@@ -111,7 +111,7 @@ namespace MoodServer
             script.Append("<script>document.title = '");
             script.Append(loc);
             script.Append(" - ");
-            script.Append(date.ToString("MM/dd/yyyy"));
+            script.Append(date.ToString("MM'/'dd'/'yyyy"));
             script.Append("';");
             script.Append(GetEntriesForBarChart(GetIdByName(loc).ToString(), date, loc));
             script.Append("</script><script src='/res/response.js'><style>.js-plotly-plot{margin:0;}</style></script></body></html>");
@@ -123,7 +123,7 @@ namespace MoodServer
             StringBuilder script = new StringBuilder();
             script.Append("<script type='text/javascript'>");
             script.Append(GetEntriesForPeriodChart(GetIdByName(loc).ToString(), datea, dateb, loc, type));
-            script.Append("document.title = '" + loc + " - " + datea.ToString("MM/dd/yyyy") + " - " + dateb.ToString("MM/dd/yyyy") + "';");
+            script.Append("document.title = '" + loc + " - " + datea.ToString("MM'/'dd'/'yyyy") + " - " + dateb.ToString("MM'/'dd'/'yyyy") + "';");
             script.Append("</script><script src='/res/response.js'><style>.js-plotly-plot{margin:0;}</style></script></body></html>");
             return script.ToString();
         }
@@ -133,7 +133,7 @@ namespace MoodServer
             StringBuilder script = new StringBuilder();
             script.Append("<script>document.title = '");
             script.Append(loc);
-            script.Append(date.ToString("MM/dd/yyyy"));
+            script.Append(date.ToString("MM'/'dd'/'yyyy"));
             script.Append("';");
             script.Append(GetEntriesForPieChart(GetIdByName(loc).ToString(), date));
             script.Append("</script><script src='/res/response.js'><style>.js-plotly-plot{margin:0;}</style></script></body></html>");
@@ -148,9 +148,9 @@ namespace MoodServer
             script.Append("document.title = '");
             script.Append(loc);
             script.Append(" - ");
-            script.Append(datea.ToString("MM/dd/yyyy"));
+            script.Append(datea.ToString("MM'/'dd'/'yyyy"));
             script.Append(" - ");
-            script.Append(dateb.ToString("MM/dd/yyyy"));
+            script.Append(dateb.ToString("MM'/'dd'/'yyyy"));
             script.Append("';</script><script src='/res/response.js'><style>.js-plotly-plot{margin:0;}</style></script></body></html>");
             return script.ToString();
         }
@@ -209,7 +209,7 @@ namespace MoodServer
                     cmd.Parameters.AddWithValue("locationId", locationId);
                 }
                 reader = cmd.ExecuteReader();
-                Console.WriteLine("Getting entries for date " + date.ToString("MM/dd/yyyy") + " for locationID " + locationId + "...");
+                Console.WriteLine("Getting entries for date " + date.ToString("MM'/'dd'/'yyyy") + " for locationID " + locationId + "...");
             }
             catch (Exception e)
             {
@@ -231,7 +231,7 @@ namespace MoodServer
             script.Append("var layout = {title: '");
             script.Append(locationName);
             script.Append(" - ");
-            script.Append(date.ToString("MM/dd/yyyy"));
+            script.Append(date.ToString("MM'/'dd'/'yyyy"));
             script.Append("'};");
             script.Append("var data = [{");
             script.Append(ToCoordinateString(x, "x"));
@@ -262,7 +262,7 @@ namespace MoodServer
             {
                 dates.Add(dt);
                 dic.Add(dt, new Mood());
-                xAxis.Append("'" + dt.ToString("MM/dd/yyyy") + "',");
+                xAxis.Append("'" + dt.ToString("MM'/'dd'/'yyyy") + "',");
             }
 
             xAxis.Length -= 1;
@@ -321,7 +321,7 @@ namespace MoodServer
 
             StringBuilder layout = new StringBuilder();
             layout.Append("var layout = {title: '");
-            layout.Append(locationName + " - " + datea.ToString("MM/dd/yyyy") + " - " + dateb.ToString("MM/dd/yyyy"));
+            layout.Append(locationName + " - " + datea.ToString("MM'/'dd'/'yyyy") + " - " + dateb.ToString("MM'/'dd'/'yyyy"));
             if (type.Equals("1"))
             {
                 layout.Append("',xaxis:{tickangle: -45,title: 'Time'},yaxis: {title: 'Amount of people per mood'}};");
@@ -367,7 +367,7 @@ namespace MoodServer
                     cmd.Parameters.AddWithValue("location", locationId);
                 }
                 reader = cmd.ExecuteReader();
-                Console.WriteLine("Getting entries for date " + date.ToString("MM/dd/yyyy") + " for locationID " + locationId + "...");
+                Console.WriteLine("Getting entries for date " + date.ToString("MM'/'dd'/'yyyy") + " for locationID " + locationId + "...");
             }
             catch (Exception e)
             {
@@ -410,7 +410,7 @@ namespace MoodServer
                     cmd.Parameters.AddWithValue("location", locationId);
                 }
                 reader = cmd.ExecuteReader();
-                Console.WriteLine("Getting entries for locationID " + locationId + " between " + datea.ToString("MM/dd/yyyy") + " and " + dateb.ToString("MM/dd/yyyy") +  "...");
+                Console.WriteLine("Getting entries for locationID " + locationId + " between " + datea.ToString("MM'/'dd'/'yyyy") + " and " + dateb.ToString("MM'/'dd'/'yyyy") +  "...");
             }
             catch (Exception e)
             {
@@ -437,7 +437,7 @@ namespace MoodServer
             {
                 Connection.Open();
                 Console.WriteLine("SQL Connection Open ! ");
-                Console.WriteLine("Getting all entries for locationId " + locationId + " between " + datea.ToString("MM/dd/yyyy") + " and " + dateb.ToString("MM/dd/yyyy"));
+                Console.WriteLine("Getting all entries for locationId " + locationId + " between " + datea.ToString("MM'/'dd'/'yyyy") + " and " + dateb.ToString("MM'/'dd'/'yyyy"));
                 SqlCommand cmd;
                 if (locationId.Equals("0"))
                 {
@@ -529,7 +529,7 @@ namespace MoodServer
                     cmd.Parameters.AddWithValue("location", location);
                 }
                 reader = cmd.ExecuteReader();
-                Console.WriteLine("Getting amount of moods with mood id " + moodId + " for location " + location + " on " + day.ToString("MM/dd/yyyy") + "...");
+                Console.WriteLine("Getting amount of moods with mood id " + moodId + " for location " + location + " on " + day.ToString("MM'/'dd'/'yyyy") + "...");
             }
             catch (Exception e)
             {
