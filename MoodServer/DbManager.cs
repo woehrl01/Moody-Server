@@ -46,12 +46,11 @@ namespace MoodServer
 
             using (SqlCommand command = new SqlCommand(save))
             {
-                Thread.CurrentThread.CurrentCulture = new CultureInfo("en-US");
                 command.Connection = Connection;
                 command.Parameters.Add("@id", SqlDbType.VarChar, 36).Value = guid;
                 command.Parameters.Add("@mood", SqlDbType.Int).Value = mood;
                 command.Parameters.Add("@loc", SqlDbType.Int).Value = location;
-                command.Parameters.Add("@date", SqlDbType.DateTime).Value = localDate.ToString();
+                command.Parameters.Add("@date", SqlDbType.DateTime).Value = localDate;
 
                 try
                 {
@@ -201,12 +200,12 @@ namespace MoodServer
                 if (locationId.Equals("0"))
                 {
                     cmd = new SqlCommand("select m.[Desc],count(e.mood) from mood m left join entries e on e.mood = m.Id and CONVERT(DATETIME, FLOOR(CONVERT(FLOAT, e.[date])),101) = @date group by  m.[Desc], mood, m.id order by m.Id asc", Connection);
-                    cmd.Parameters.AddWithValue("date", date.ToString("MM/dd/yyyy"));
+                    cmd.Parameters.AddWithValue("date", date);
                 }
                 else
                 {
                     cmd = new SqlCommand("select m.[Desc],count(e.mood) from mood m left join entries e on e.mood = m.Id and e.location = @locationId and CONVERT(DATETIME, FLOOR(CONVERT(FLOAT, e.[date])),101) = @date group by  m.[Desc], mood, m.id order by m.Id asc", Connection);
-                    cmd.Parameters.AddWithValue("date", date.ToString("MM/dd/yyyy"));
+                    cmd.Parameters.AddWithValue("date", date);
                     cmd.Parameters.AddWithValue("locationId", locationId);
                 }
                 reader = cmd.ExecuteReader();
@@ -359,12 +358,12 @@ namespace MoodServer
                 if (locationId.Equals("0"))
                 {
                     cmd = new SqlCommand("SELECT count(e.mood),m.[Desc] FROM entries e left join mood m on e.mood = m.Id WHERE CONVERT(DATETIME, FLOOR(CONVERT(FLOAT, e.[date])), 101) = @date group by e.mood, m.[Desc], m.Id", Connection);
-                    cmd.Parameters.AddWithValue("date", date.ToString("MM/dd/yyyy"));
+                    cmd.Parameters.AddWithValue("date", date);
                 }
                 else
                 {
                     cmd = new SqlCommand("SELECT count(e.mood),m.[Desc] FROM entries e left join mood m on e.mood = m.Id WHERE CONVERT(DATETIME, FLOOR(CONVERT(FLOAT, e.[date])), 101) = @date and e.location = @location group by e.mood, m.[Desc], m.Id", Connection);
-                    cmd.Parameters.AddWithValue("date", date.ToString("MM/dd/yyyy"));
+                    cmd.Parameters.AddWithValue("date", date);
                     cmd.Parameters.AddWithValue("location", locationId);
                 }
                 reader = cmd.ExecuteReader();
@@ -400,14 +399,14 @@ namespace MoodServer
                 if (locationId.Equals("0"))
                 {
                     cmd = new SqlCommand("SELECT count(e.mood),m.[Desc] FROM entries e left join mood m on e.mood = m.Id WHERE CONVERT(DATETIME, FLOOR(CONVERT(FLOAT, e.[date])), 101) between @datea and @dateb group by e.mood, m.[Desc], m.Id", Connection);
-                    cmd.Parameters.AddWithValue("datea", datea.ToString("MM/dd/yyyy"));
-                    cmd.Parameters.AddWithValue("dateb", dateb.ToString("MM/dd/yyyy"));
+                    cmd.Parameters.AddWithValue("datea", datea);
+                    cmd.Parameters.AddWithValue("dateb", dateb);
                 }
                 else
                 {
                     cmd = new SqlCommand("SELECT count(e.mood),m.[Desc] FROM entries e left join mood m on e.mood = m.Id WHERE CONVERT(DATETIME, FLOOR(CONVERT(FLOAT, e.[date])), 101) between @datea and @dateb and e.location = @location group by e.mood, m.[Desc], m.Id", Connection);
-                    cmd.Parameters.AddWithValue("datea", datea.ToString("MM/dd/yyyy"));
-                    cmd.Parameters.AddWithValue("dateb", dateb.ToString("MM/dd/yyyy"));
+                    cmd.Parameters.AddWithValue("datea", datea);
+                    cmd.Parameters.AddWithValue("dateb", dateb);
                     cmd.Parameters.AddWithValue("location", locationId);
                 }
                 reader = cmd.ExecuteReader();
@@ -520,13 +519,13 @@ namespace MoodServer
                 {
                     cmd = new SqlCommand("SELECT count(mood) FROM entries WHERE mood = @moodID and CONVERT(DATETIME, FLOOR(CONVERT(FLOAT, [date])),101) = @day", Connection);
                     cmd.Parameters.AddWithValue("moodID", moodId);
-                    cmd.Parameters.AddWithValue("day", day.ToString("MM/dd/yyyy"));
+                    cmd.Parameters.AddWithValue("day", day);
                 }
                 else
                 {
                     cmd = new SqlCommand("SELECT count(mood) FROM entries WHERE mood = @moodID and CONVERT(DATETIME, FLOOR(CONVERT(FLOAT, [date])),101) = @day and location = @location", Connection);
                     cmd.Parameters.AddWithValue("moodID", moodId);
-                    cmd.Parameters.AddWithValue("day", day.ToString("MM/dd/yyyy"));
+                    cmd.Parameters.AddWithValue("day", day);
                     cmd.Parameters.AddWithValue("location", location);
                 }
                 reader = cmd.ExecuteReader();

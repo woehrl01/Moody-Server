@@ -15,7 +15,6 @@ namespace MoodServer
         {
             ExceptionlessClient.Default.Startup("3lSIuYT0NR6iXMffO7FIi46Ga5DJL8K3G1xmS2E0");
             Console.Title = "Mood Server Console";
-            Thread.CurrentThread.CurrentCulture = new CultureInfo("en-US");
             var uri = new Uri($"{_url}:{port}/");
             using (var nancy = new NancyHost(uri))
             {
